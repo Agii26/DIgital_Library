@@ -1,11 +1,12 @@
 <?php
 
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
-
 $publicPath = __DIR__ . '/public';
 $filePath = $publicPath . $uri;
 
-// If file exists in public directory, serve it directly
+// Debug log
+error_log("URI: $uri | FilePath: $filePath | Exists: " . (file_exists($filePath) ? 'YES' : 'NO'));
+
 if ($uri !== '/' && file_exists($filePath) && is_file($filePath)) {
     $ext = pathinfo($filePath, PATHINFO_EXTENSION);
     $mimeTypes = [
@@ -30,5 +31,4 @@ if ($uri !== '/' && file_exists($filePath) && is_file($filePath)) {
     exit;
 }
 
-// Otherwise route through Laravel
 require_once $publicPath . '/index.php';
