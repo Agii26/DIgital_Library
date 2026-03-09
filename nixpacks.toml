@@ -29,4 +29,4 @@ cmds = [
 ]
 
 [start]
-cmd = "php artisan migrate --force && php artisan db:seed --force && php artisan storage:link 2>/dev/null || true && php -S 0.0.0.0:$PORT public/server.php"
+cmd = "php artisan migrate --force && php artisan db:seed --force && php artisan storage:link 2>/dev/null || true && ls -la public/build/assets/ && php -S 0.0.0.0:$PORT public/server.php"
