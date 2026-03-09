@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* ── Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+* {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── Nav Links ── */
+.nav-link {
+    transition: background 0.18s ease, transform 0.15s ease;
+}
+.nav-link:hover {
+    transform: translateX(3px);
+}
+.nav-link.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-left: 3px solid #93c5fd;
+}
+
+/* ── Page Fade In ── */
+main {
+    animation: fadeUp 0.3s ease forwards;
+}
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Hover Cards ── */
+.hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Sidebar Scrollbar ── */
+aside::-webkit-scrollbar { width: 4px; }
+aside::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+/* ── Bottom Nav Active State ── */
+.bottom-nav-item.active svg,
+.bottom-nav-item.active span {
+    color: #2563eb;
+}
