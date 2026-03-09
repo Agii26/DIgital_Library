@@ -4,6 +4,19 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\SetPasswordController;
 
+
+Route::get('/debug-manifest', function() {
+    $manifestPath = public_path('build/manifest.json');
+    if (file_exists($manifestPath)) {
+        return response()->json([
+            'exists' => true,
+            'content' => json_decode(file_get_contents($manifestPath)),
+            'build_files' => glob(public_path('build/assets/*'))
+        ]);
+    }
+    return response()->json(['exists' => false]);
+});
+
 Route::get('/', fn() => redirect()->route('login'));
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -83,4 +96,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/digital-books/{book}/read', [App\Http\Controllers\DigitalBookController::class, 'read'])->name('digital.read');
     Route::post('/digital-sessions/{session}/expire', [App\Http\Controllers\DigitalBookController::class, 'expire'])->name('digital.expire');
 });
+
 
