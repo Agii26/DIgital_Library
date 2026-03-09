@@ -75,7 +75,11 @@ class UserController extends Controller
         ]);
 
         $user->assignRole($request->role);
-        $user->notify(new SetPasswordNotification($token));
+        try {
+            $user->notify(new SetPasswordNotification($token));
+        } catch (\Exception $e) {
+            \Log::error('Mail error: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User created successfully. A set password email has been sent.');
