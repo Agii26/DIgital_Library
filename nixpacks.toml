@@ -23,8 +23,6 @@ cmds = [
 [phases.build]
 cmds = [
   "npm run build",
-  "ls -la public/build || echo 'BUILD FOLDER MISSING'",
-  "ls -la public/build/assets || echo 'ASSETS FOLDER MISSING'",
   "php artisan config:cache",
   "php artisan route:cache",
   "php artisan view:cache"
