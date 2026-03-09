@@ -10,14 +10,14 @@ nixPkgs = [
   "php82Extensions.xml",
   "php82Extensions.ctype",
   "php82Extensions.fileinfo",
-  "nodejs",
+  "nodejs_20",
   "php82Packages.composer"
 ]
 
 [phases.install]
 cmds = [
   "composer install --no-interaction --prefer-dist --optimize-autoloader",
-  "npm install"
+  "npm ci"
 ]
 
 [phases.build]
