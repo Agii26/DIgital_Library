@@ -23,10 +23,12 @@ cmds = [
 [phases.build]
 cmds = [
   "npm run build",
+  "ls -la public/build || echo 'BUILD FOLDER MISSING'",
+  "ls -la public/build/assets || echo 'ASSETS FOLDER MISSING'",
   "php artisan config:cache",
   "php artisan route:cache",
   "php artisan view:cache"
 ]
 
 [start]
-cmd = "php artisan migrate --force && php artisan db:seed --force && php artisan storage:link 2>/dev/null || true && php -S 0.0.0.0:$PORT -t public"
+cmd = "php artisan migrate --force && php artisan db:seed --force && php artisan storage:link 2>/dev/null || true && php -S 0.0.0.0:$PORT server.php"
