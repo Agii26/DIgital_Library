@@ -46,7 +46,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/users/{user}/toggle', [App\Http\Controllers\Admin\UserController::class, 'toggle'])->name('users.toggle');
     Route::post('/users/{user}/resend', [App\Http\Controllers\Admin\UserController::class, 'resendSetPassword'])->name('users.resend');
     Route::post('/users/import', [App\Http\Controllers\Admin\UserController::class, 'import'])->name('users.import');
-    Route::resource('books', App\Http\Controllers\Admin\BookController::class);
+    Route::get('/users/password-links', [App\Http\Controllers\Admin\UserController::class, 'passwordLinks'])->name('users.password-links');
+    Route::resource('users', App\Http\Controllers\Admin\UserController::class);
     Route::get('/borrows', [App\Http\Controllers\Admin\BorrowController::class, 'index'])->name('borrows.index');
     Route::post('/borrows/{borrow}/approve', [App\Http\Controllers\Admin\BorrowController::class, 'approve'])->name('borrows.approve');
     Route::post('/borrows/{borrow}/claim', [App\Http\Controllers\Admin\BorrowController::class, 'claim'])->name('borrows.claim');
@@ -66,7 +67,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
-    
     
 });
 

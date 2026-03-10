@@ -200,4 +200,15 @@ class UserController extends Controller
         $user->delete();
         return back()->with('success', 'User deleted successfully!');
     }
+    public function passwordLinks()
+    {
+        $users = User::whereNot('role', 'admin')
+            ->where('password_set', false)
+            ->whereNotNull('set_password_token')
+            ->where('set_password_token_expires_at', '>', now())
+            ->latest()
+            ->get();
+
+        return view('admin.users.password-links', compact('users'));
+    }
 }

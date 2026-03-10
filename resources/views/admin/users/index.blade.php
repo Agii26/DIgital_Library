@@ -44,6 +44,10 @@ function copyLink() {
                 Import CSV/Excel
             </button>
         </form>
+        <a href="{{ route('admin.users.password-links') }}"
+            class="bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-orange-600 transition">
+            🔑 Password Links
+        </a>
     </div>
 </div>
 
