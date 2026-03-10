@@ -1,9 +1,10 @@
 FROM php:8.2-cli
 
 RUN apt-get update && apt-get install -y \
-    git curl zip unzip nodejs npm \
-    libpng-dev libzip-dev libxml2-dev \
-    && docker-php-ext-install gd zip pdo pdo_mysql mbstring xml ctype fileinfo
+    git curl zip unzip libpng-dev libzip-dev \
+    libxml2-dev libonig-dev nodejs npm \
+    && docker-php-ext-install gd zip pdo pdo_mysql mbstring xml ctype fileinfo \
+    && apt-get clean
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -12,7 +13,6 @@ COPY . .
 
 RUN composer install --no-interaction --prefer-dist --optimize-autoloader
 RUN npm ci && npm run build
-RUN php artisan config:cache || true
 
 EXPOSE 8080
 
