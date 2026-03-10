@@ -74,7 +74,10 @@ class UserController extends Controller
             'set_password_token_expires_at' => now()->addHours(48),
         ]);
 
-        $user->assignRole($request->role);
+       $user->assignRole($request->role);
+    
+        $setPasswordUrl = url('/set-password?token=' . $token . '&email=' . urlencode($request->email));
+        
         try {
             $user->notify(new SetPasswordNotification($token));
         } catch (\Exception $e) {
@@ -82,8 +85,10 @@ class UserController extends Controller
         }
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'User created successfully. A set password email has been sent.');
-    }
+            ->with('success', 'User created successfully!')
+            ->with('set_password_url', $setPasswordUrl)
+            ->with('set_password_name', $request->name);
+        }
 
     public function import(Request $request)
     {
@@ -110,8 +115,19 @@ class UserController extends Controller
             'set_password_token'            => $token,
             'set_password_token_expires_at' => now()->addHours(48),
         ]);
-        $user->notify(new SetPasswordNotification($token));
-        return back()->with('success', 'Password setup email resent.');
+
+        $setPasswordUrl = url('/set-password?token=' . $token . '&email=' . urlencode($user->email));
+
+        try {
+            $user->notify(new SetPasswordNotification($token));
+        } catch (\Exception $e) {
+            \Log::error('Mail error: ' . $e->getMessage());
+        }
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Password setup link generated!')
+            ->with('set_password_url', $setPasswordUrl)
+            ->with('set_password_name', $user->name);
     }
     public function edit(User $user)
     {

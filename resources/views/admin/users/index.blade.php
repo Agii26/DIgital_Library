@@ -3,6 +3,32 @@
 @section('page-title', 'User Management')
 
 @section('content')
+@if(session('set_password_url'))
+<div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-5">
+    <div class="flex items-start justify-between gap-4">
+        <div class="flex-1">
+            <p class="font-semibold text-blue-800 text-sm mb-1">
+                📋 Share this password setup link with <strong>{{ session('set_password_name') }}</strong>:
+            </p>
+            <code class="text-xs text-blue-700 break-all bg-blue-100 px-3 py-2 rounded-lg block mt-1">
+                {{ session('set_password_url') }}
+            </code>
+        </div>
+        <button onclick="copyLink()"
+            class="shrink-0 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 transition">
+            Copy Link
+        </button>
+    </div>
+</div>
+
+<script>
+function copyLink() {
+    navigator.clipboard.writeText('{{ session('set_password_url') }}');
+    alert('Link copied!');
+}
+</script>
+@endif
+
 <div class="mb-6 flex justify-between items-center">
     <div class="flex gap-3">
         <a href="{{ route('admin.users.create') }}"
