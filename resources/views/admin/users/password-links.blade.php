@@ -3,72 +3,93 @@
 @section('page-title', 'Password Setup Links')
 
 @section('content')
-<div class="max-w-4xl">
 
-    <div class="flex items-center justify-between mb-5">
-        <div>
-            <h2 class="text-xl font-black text-gray-900">Password Setup Links</h2>
-            <p class="text-sm text-gray-400 mt-0.5">Users who haven't set their password yet</p>
-        </div>
-        <a href="{{ route('admin.users.index') }}"
-            class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-200 transition">
-            ← Back to Users
+{{-- Page Header --}}
+<div class="page-title-wrap">
+    <div>
+        <h1 class="page-title">Password Setup Links</h1>
+        <p class="page-subtitle">Users who have not yet set their password</p>
+    </div>
+    <div class="page-actions">
+        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            Back to Users
         </a>
     </div>
+</div>
 
-    @if(session('success'))
-    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-5 text-sm font-medium">
-        {{ session('success') }}
+@if($users->isEmpty())
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-state-icon" style="background:var(--success-pale);color:var(--success);">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <p class="empty-state-title">All passwords have been set</p>
+        <p class="empty-state-text">No pending password setup links at this time.</p>
+        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Back to Users</a>
     </div>
-    @endif
+</div>
 
-    @if($users->isEmpty())
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
-        <p class="text-4xl mb-3">🎉</p>
-        <p class="font-semibold text-gray-700">All users have set their passwords!</p>
-        <p class="text-sm text-gray-400 mt-1">No pending password setup links.</p>
-    </div>
-    @else
-    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50">
-        @foreach($users as $user)
-        <div class="p-5">
-            <div class="flex items-start justify-between gap-4 mb-3">
+@else
+<div class="card">
+    @foreach($users as $user)
+    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
+
+        {{-- User Info Row --}}
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:0.875rem;">
+            <div style="display:flex;align-items:center;gap:0.75rem;">
+                <div class="avatar avatar-md">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
                 <div>
-                    <p class="font-semibold text-gray-800">{{ $user->name }}</p>
-                    <p class="text-xs text-gray-400">{{ $user->email }} · {{ ucfirst($user->role) }}</p>
-                    <p class="text-xs text-orange-500 mt-0.5">
+                    <p style="font-size:0.875rem;font-weight:600;color:var(--text-head);">{{ $user->name }}</p>
+                    <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.1rem;">
+                        {{ $user->email }}
+                        <span style="margin:0 0.3rem;color:var(--border-strong);">&middot;</span>
+                        <span class="badge badge-muted" style="font-size:0.62rem;">{{ ucfirst($user->role) }}</span>
+                    </p>
+                    @if($user->set_password_token_expires_at)
+                    <p style="font-size:0.72rem;color:var(--warning);margin-top:0.25rem;">
                         Expires: {{ $user->set_password_token_expires_at->format('M d, Y h:i A') }}
                     </p>
+                    @else
+                    <p style="font-size:0.72rem;color:var(--text-dim);margin-top:0.25rem;">No active token</p>
+                    @endif
                 </div>
-                <form method="POST" action="{{ route('admin.users.resend-set-password', $user) }}">
-                    @csrf
-                    <button type="submit"
-                        class="shrink-0 bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-50 hover:text-blue-700 transition">
-                        🔄 Regenerate
-                    </button>
-                </form>
             </div>
-
-            <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-                <code class="text-xs text-gray-600 break-all flex-1" id="link-{{ $user->id }}">{{ url('/set-password?token=' . $user->set_password_token . '&email=' . urlencode($user->email)) }}</code>
-                <button onclick="copyLink('{{ $user->id }}')"
-                    class="shrink-0 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-700 transition whitespace-nowrap">
-                    Copy
+            <form method="POST" action="{{ route('admin.users.resend', $user) }}">
+                @csrf
+                <button type="submit" class="btn btn-sm btn-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Regenerate
                 </button>
-            </div>
+            </form>
         </div>
-        @endforeach
-    </div>
-    @endif
 
+        {{-- Link Row --}}
+        @if($user->set_password_token)
+        <div style="display:flex;align-items:center;gap:0.75rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:0.625rem 0.875rem;">
+            <code id="link-{{ $user->id }}" style="font-size:0.72rem;color:var(--text-muted);word-break:break-all;flex:1;font-family:monospace;">{{ url('/set-password') . '?token=' . $user->set_password_token . '&email=' . urlencode($user->email) }}</code>
+            <button onclick="copyLink('{{ $user->id }}')" class="btn btn-sm btn-primary" style="flex-shrink:0;">
+                Copy
+            </button>
+        </div>
+        @else
+        <div style="background:var(--warning-pale);border:1px solid #f0dfa0;border-radius:var(--radius);padding:0.625rem 0.875rem;">
+            <p style="font-size:0.775rem;color:var(--warning);">No token generated yet. Click Regenerate to create a link.</p>
+        </div>
+        @endif
+
+    </div>
+    @endforeach
 </div>
+@endif
 
 <script>
 function copyLink(userId) {
-    const link = document.getElementById('link-' + userId).innerText;
+    const link = document.getElementById('link-' + userId).innerText.trim();
     navigator.clipboard.writeText(link).then(() => {
         alert('Link copied to clipboard!');
     });
 }
 </script>
+
 @endsection

@@ -3,265 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ config('app.name', 'Digital Library') }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('page-title', 'Digital Library') — Digital Library</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
 </head>
-<body class="bg-slate-100 min-h-screen" x-data="{ sidebarOpen: false }">
+<body>
 
-    <!-- Mobile Overlay -->
-    <div id="sidebar-overlay"
-        x-show="sidebarOpen"
-        @click="sidebarOpen = false"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-black/50 z-20 lg:hidden">
-    </div>
+<div class="app-wrapper">
 
-    <!-- Sidebar -->
-    <aside class="w-64 min-h-screen flex flex-col fixed top-0 left-0 z-30 overflow-y-auto
-        bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900 text-white shadow-2xl
-        transition-transform duration-300 ease-in-out
-        -translate-x-full lg:translate-x-0"
-        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
+    {{-- ── Sidebar ────────────────────────────────────────── --}}
+    <aside class="sidebar">
 
-        <!-- Logo -->
-        <div class="px-6 py-5 border-b border-white/10">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center text-lg shadow-inner">
-                    📚
-                </div>
-                <div>
-                    <h1 class="text-base font-bold leading-tight">Digital Library</h1>
-                    <p class="text-xs text-blue-300">{{ ucfirst(Auth::user()->role) }} Panel</p>
-                </div>
+        {{-- Brand --}}
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-line"></div>
+            <div class="sidebar-brand-title">Digital Library</div>
+            <div class="sidebar-brand-sub">Management System</div>
+        </div>
+
+        {{-- User --}}
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">
+                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+            </div>
+            <div style="overflow:hidden;">
+                <div class="sidebar-user-name">{{ auth()->user()->name }}</div>
+                <div class="sidebar-user-role">{{ ucfirst(auth()->user()->getRoleNames()->first() ?? 'user') }}</div>
             </div>
         </div>
 
-        <!-- Nav -->
-        <nav class="flex-1 px-3 py-5 space-y-0.5">
+        {{-- Navigation --}}
+        <nav class="sidebar-nav">
 
-            @if(Auth::user()->role === 'admin')
-                <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">🏠</span> Dashboard
-                </a>
-                <a href="{{ route('admin.books.index') }}" class="nav-link {{ request()->routeIs('admin.books.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">📖</span> Books
-                </a>
-                <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">👥</span> Users
-                </a>
-                <a href="{{ route('admin.borrows.index') }}" class="nav-link {{ request()->routeIs('admin.borrows.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">📋</span> Borrowing
-                </a>
-                <a href="{{ route('admin.penalties.index') }}" class="nav-link {{ request()->routeIs('admin.penalties.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">💰</span> Penalties
-                </a>
-                <a href="{{ route('admin.attendance.index') }}" class="nav-link {{ request()->routeIs('admin.attendance.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">📡</span> RFID Attendance
-                </a>
-                <a href="{{ route('messages.index') }}" class="nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">💬</span> Messages
-                </a>
-                <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">📊</span> Reports
-                </a>
-                <a href="{{ route('admin.settings.index') }}" class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">⚙️</span> Settings
-                </a>
-                <a href="{{ route('profile.index') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">👤</span> My Profile
-                </a>
+            @role('admin')
+            <div class="sidebar-section-label">Management</div>
 
-            @elseif(Auth::user()->role === 'faculty')
-                <a href="{{ route('faculty.dashboard') }}" class="nav-link {{ request()->routeIs('faculty.dashboard') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">🏠</span> Dashboard
-                </a>
-                <div x-data="{ open: {{ request()->routeIs('digital.*') || request()->routeIs('faculty.books.*') ? 'true' : 'false' }} }">
-                    <button @click="open = !open" class="nav-link w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                        <span class="flex items-center gap-3"><span class="text-base">📖</span> Browse Books</span>
-                        <svg :class="open ? 'rotate-180' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="ml-4 mt-0.5 space-y-0.5">
-                        <a href="{{ route('digital.index') }}" class="nav-link {{ request()->routeIs('digital.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2 rounded-xl text-sm hover:bg-white/10">
-                            <span>💻</span> Digital Books
-                        </a>
-                        <a href="{{ route('faculty.books.index') }}" class="nav-link {{ request()->routeIs('faculty.books.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2 rounded-xl text-sm hover:bg-white/10">
-                            <span>📚</span> Physical Books
-                        </a>
-                    </div>
-                </div>
-                <a href="{{ route('faculty.borrows.index') }}" class="nav-link {{ request()->routeIs('faculty.borrows.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">📋</span> My Borrows
-                </a>
-                <a href="{{ route('faculty.penalties.index') }}" class="nav-link {{ request()->routeIs('faculty.penalties.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">💰</span> My Penalties
-                </a>
-                <a href="{{ route('messages.index') }}" class="nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">💬</span> Messages
-                </a>
-                <a href="{{ route('profile.index') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">👤</span> My Profile
-                </a>
+            <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Dashboard
+            </a>
 
-            @elseif(Auth::user()->role === 'student')
-                <a href="{{ route('student.dashboard') }}" class="nav-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">🏠</span> Dashboard
-                </a>
-                <div x-data="{ open: {{ request()->routeIs('digital.*') || request()->routeIs('student.books.*') ? 'true' : 'false' }} }">
-                    <button @click="open = !open" class="nav-link w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                        <span class="flex items-center gap-3"><span class="text-base">📖</span> Browse Books</span>
-                        <svg :class="open ? 'rotate-180' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </button>
-                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="ml-4 mt-0.5 space-y-0.5">
-                        <a href="{{ route('digital.index') }}" class="nav-link {{ request()->routeIs('digital.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2 rounded-xl text-sm hover:bg-white/10">
-                            <span>💻</span> Digital Books
-                        </a>
-                        <a href="{{ route('student.books.index') }}" class="nav-link {{ request()->routeIs('student.books.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2 rounded-xl text-sm hover:bg-white/10">
-                            <span>📚</span> Physical Books
-                        </a>
-                    </div>
-                </div>
-                <a href="{{ route('student.borrows.index') }}" class="nav-link {{ request()->routeIs('student.borrows.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">📋</span> My Borrows
-                </a>
-                <a href="{{ route('student.penalties.index') }}" class="nav-link {{ request()->routeIs('student.penalties.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">💰</span> My Penalties
-                </a>
-                <a href="{{ route('messages.index') }}" class="nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">💬</span> Messages
-                </a>
-                <a href="{{ route('profile.index') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }} flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10">
-                    <span class="text-base">👤</span> My Profile
-                </a>
-            @endif
+            <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Users
+            </a>
+
+            <a href="{{ route('admin.books.index') }}" class="sidebar-link {{ request()->routeIs('admin.books.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                Books
+            </a>
+
+            <a href="{{ route('admin.borrows.index') }}" class="sidebar-link {{ request()->routeIs('admin.borrows.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                Borrowing
+            </a>
+
+            <a href="{{ route('admin.penalties.index') }}" class="sidebar-link {{ request()->routeIs('admin.penalties.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Penalties
+            </a>
+
+            <div class="sidebar-section-label">Operations</div>
+
+            <a href="{{ route('admin.attendance.index') }}" class="sidebar-link {{ request()->routeIs('admin.attendance.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                Attendance
+            </a>
+
+            <a href="{{ route('admin.reports.index') }}" class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Reports
+            </a>
+
+            <a href="{{ route('admin.settings.index') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Settings
+            </a>
+            @endrole
+
+            @role('faculty')
+            <div class="sidebar-section-label">Library</div>
+            <a href="{{ route('faculty.dashboard') }}" class="sidebar-link {{ request()->routeIs('faculty.dashboard') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Dashboard
+            </a>
+            <a href="{{ route('faculty.books.index') }}" class="sidebar-link {{ request()->routeIs('faculty.books.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                Browse Books
+            </a>
+            <a href="{{ route('faculty.borrows.index') }}" class="sidebar-link {{ request()->routeIs('faculty.borrows.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                My Borrows
+            </a>
+            <a href="{{ route('faculty.penalties.index') }}" class="sidebar-link {{ request()->routeIs('faculty.penalties.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Penalties
+            </a>
+            @endrole
+
+            @role('student')
+            <div class="sidebar-section-label">Library</div>
+            <a href="{{ route('student.dashboard') }}" class="sidebar-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Dashboard
+            </a>
+            <a href="{{ route('student.books.index') }}" class="sidebar-link {{ request()->routeIs('student.books.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                Browse Books
+            </a>
+            <a href="{{ route('student.borrows.index') }}" class="sidebar-link {{ request()->routeIs('student.borrows.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                My Borrows
+            </a>
+            <a href="{{ route('student.penalties.index') }}" class="sidebar-link {{ request()->routeIs('student.penalties.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Penalties
+            </a>
+            @endrole
+
+            <div class="sidebar-section-label">General</div>
+            <a href="{{ route('digital.index') }}" class="sidebar-link {{ request()->routeIs('digital.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Digital Books
+            </a>
+            <a href="{{ route('messages.index') }}" class="sidebar-link {{ request()->routeIs('messages.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                Messages
+            </a>
+            <a href="{{ route('profile.index') }}" class="sidebar-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                My Profile
+            </a>
+
         </nav>
 
-        <!-- User & Logout -->
-        <div class="px-4 py-4 border-t border-white/10">
-            <div class="flex items-center gap-3 mb-3 px-2">
-                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold">
-                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium truncate">{{ Auth::user()->name }}</p>
-                    <p class="text-xs text-blue-300 truncate">{{ Auth::user()->email }}</p>
-                </div>
-            </div>
+        {{-- Footer --}}
+        <div class="sidebar-footer">
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button class="nav-link w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-white/10 text-red-300 hover:text-red-200">
-                    <span class="text-base">🚪</span> Logout
+                <button type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    Sign Out
                 </button>
             </form>
         </div>
+
     </aside>
 
-    <!-- Main -->
-    <div class="lg:ml-64 flex-1 flex flex-col min-h-screen pb-16 lg:pb-0">
+    {{-- ── Main Content ────────────────────────────────────── --}}
+    <main class="main-content">
 
-        <!-- Top Bar -->
-        <header class="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
-            <div class="flex items-center gap-3">
-                <!-- Hamburger (mobile only) -->
-                <button @click="sidebarOpen = true" class="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition">
-                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-                <h2 class="text-base lg:text-lg font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h2>
-            </div>
-            <div class="flex items-center gap-3">
-                <span class="hidden sm:block text-sm text-gray-400">{{ now()->format('F d, Y') }}</span>
-                <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                </div>
-            </div>
-        </header>
-
-        <!-- Page Content -->
-        <main class="p-4 lg:p-6 flex-1">
-            @yield('content')
-        </main>
-    </div>
-
-    <!-- Bottom Nav (mobile only) -->
-    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-20 shadow-lg">
-        <div class="flex">
-            @if(Auth::user()->role === 'admin')
-                <a href="{{ route('admin.dashboard') }}" class="bottom-nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span class="text-xs mt-0.5">Home</span>
-                </a>
-                <a href="{{ route('admin.books.index') }}" class="bottom-nav-item {{ request()->routeIs('admin.books.*') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                    <span class="text-xs mt-0.5">Books</span>
-                </a>
-                <a href="{{ route('admin.borrows.index') }}" class="bottom-nav-item {{ request()->routeIs('admin.borrows.*') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    <span class="text-xs mt-0.5">Borrows</span>
-                </a>
-                <a href="{{ route('messages.index') }}" class="bottom-nav-item {{ request()->routeIs('messages.*') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    <span class="text-xs mt-0.5">Messages</span>
-                </a>
-                <button @click="sidebarOpen = true" class="flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    <span class="text-xs mt-0.5">More</span>
-                </button>
-
-            @elseif(Auth::user()->role === 'faculty')
-                <a href="{{ route('faculty.dashboard') }}" class="bottom-nav-item {{ request()->routeIs('faculty.dashboard') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span class="text-xs mt-0.5">Home</span>
-                </a>
-                <a href="{{ route('digital.index') }}" class="bottom-nav-item {{ request()->routeIs('digital.*') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                    <span class="text-xs mt-0.5">Books</span>
-                </a>
-                <a href="{{ route('faculty.borrows.index') }}" class="bottom-nav-item {{ request()->routeIs('faculty.borrows.*') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    <span class="text-xs mt-0.5">Borrows</span>
-                </a>
-                <a href="{{ route('messages.index') }}" class="bottom-nav-item {{ request()->routeIs('messages.*') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    <span class="text-xs mt-0.5">Messages</span>
-                </a>
-                <button @click="sidebarOpen = true" class="flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    <span class="text-xs mt-0.5">More</span>
-                </button>
-
-            @elseif(Auth::user()->role === 'student')
-                <a href="{{ route('student.dashboard') }}" class="bottom-nav-item {{ request()->routeIs('student.dashboard') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    <span class="text-xs mt-0.5">Home</span>
-                </a>
-                <a href="{{ route('digital.index') }}" class="bottom-nav-item {{ request()->routeIs('digital.*') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                    <span class="text-xs mt-0.5">Books</span>
-                </a>
-                <a href="{{ route('student.borrows.index') }}" class="bottom-nav-item {{ request()->routeIs('student.borrows.*') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    <span class="text-xs mt-0.5">Borrows</span>
-                </a>
-                <a href="{{ route('messages.index') }}" class="bottom-nav-item {{ request()->routeIs('messages.*') ? 'active' : '' }} flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                    <span class="text-xs mt-0.5">Messages</span>
-                </a>
-                <button @click="sidebarOpen = true" class="flex-1 flex flex-col items-center py-2 text-gray-500 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    <span class="text-xs mt-0.5">More</span>
-                </button>
-            @endif
+        @if(session('success'))
+        <div class="alert alert-success">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>{{ session('success') }}</span>
         </div>
-    </nav>
+        @endif
+
+        @if(session('error'))
+        <div class="alert alert-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>{{ session('error') }}</span>
+        </div>
+        @endif
+
+        @if(session('warning'))
+        <div class="alert alert-warning">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>{{ session('warning') }}</span>
+        </div>
+        @endif
+
+        @if($errors->any())
+        <div class="alert alert-danger">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div>
+                <strong>Please correct the following errors:</strong>
+                <ul style="margin-top:0.35rem;padding-left:1.25rem;">
+                    @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+        @endif
+
+        @yield('content')
+
+    </main>
+
+</div>
 
 </body>
 </html>

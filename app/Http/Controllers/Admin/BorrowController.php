@@ -50,7 +50,11 @@ class BorrowController extends Controller
             'approved_at' => now(),
         ]);
 
-        $borrow->user->notify(new ReservationStatusNotification($borrow, 'approved'));
+        try {
+        $borrow->user->notify(new ReservationStatusNotification($borrow, 'approved'));}
+        catch (\Exception $e) {
+            \Log::error('Mail error: ' . $e->getMessage());
+        }
 
         return back()->with('success', 'Reservation approved! User has been notified.');
     }

@@ -202,10 +202,11 @@ class UserController extends Controller
     }
     public function passwordLinks()
     {
-        $users = User::whereNot('role', 'admin')
-            ->where('password_set', false)
+        $users = User::where('password_set', false)
             ->whereNotNull('set_password_token')
-            ->where('set_password_token_expires_at', '>', now())
+            ->whereHas('roles', function ($q) {
+                $q->whereIn('name', ['student', 'faculty']);
+            })
             ->latest()
             ->get();
 

@@ -4,136 +4,147 @@
 
 @section('content')
 
-@if(session('success'))
-    <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-4 text-sm font-medium">
-        {{ session('success') }}
+{{-- Page Header --}}
+<div class="page-title-wrap">
+    <div>
+        <h1 class="page-title">Book Management</h1>
+        <p class="page-subtitle">Manage the library's physical and digital collection</p>
     </div>
-@endif
-
-<!-- Header -->
-<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-    <a href="{{ route('admin.books.create') }}"
-        class="bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-800 transition shadow-sm">
-        + Add Book
-    </a>
+    <div class="page-actions">
+        <a href="{{ route('admin.books.create') }}" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add Book
+        </a>
+    </div>
 </div>
 
-<!-- Filters -->
-<form method="GET" action="{{ route('admin.books.index') }}"
-    class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-wrap gap-3">
-    <input type="text" name="search" value="{{ request('search') }}"
-        placeholder="Search title, author, accession no..."
-        class="flex-1 min-w-[200px] border border-gray-200 bg-gray-50 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition" />
-    <select name="type" class="border border-gray-200 bg-gray-50 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-        <option value="">All Types</option>
-        <option value="physical" {{ request('type') === 'physical' ? 'selected' : '' }}>Physical</option>
-        <option value="digital" {{ request('type') === 'digital' ? 'selected' : '' }}>Digital</option>
-    </select>
-    <select name="status" class="border border-gray-200 bg-gray-50 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-        <option value="">All Status</option>
-        <option value="available" {{ request('status') === 'available' ? 'selected' : '' }}>Available</option>
-        <option value="borrowed" {{ request('status') === 'borrowed' ? 'selected' : '' }}>Borrowed</option>
-        <option value="reserved" {{ request('status') === 'reserved' ? 'selected' : '' }}>Reserved</option>
-        <option value="damaged" {{ request('status') === 'damaged' ? 'selected' : '' }}>Damaged</option>
-        <option value="lost" {{ request('status') === 'lost' ? 'selected' : '' }}>Lost</option>
-    </select>
-    <button type="submit"
-        class="bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-800 transition">
-        Search
-    </button>
-    <a href="{{ route('admin.books.index') }}"
-        class="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-200 transition">
-        Reset
-    </a>
-</form>
+{{-- Search & Filters --}}
+<div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-body" style="padding:1.125rem 1.5rem;">
+        <form method="GET" action="{{ route('admin.books.index') }}" style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+            <div style="position:relative;flex:1;min-width:220px;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-dim);pointer-events:none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" name="search" value="{{ request('search') }}"
+                    placeholder="Search title, author, accession no..."
+                    class="form-control" style="padding-left:2.25rem;">
+            </div>
+            <select name="type" class="form-control" style="width:auto;min-width:130px;">
+                <option value="">All Types</option>
+                <option value="physical" {{ request('type') === 'physical' ? 'selected' : '' }}>Physical</option>
+                <option value="digital" {{ request('type') === 'digital' ? 'selected' : '' }}>Digital</option>
+            </select>
+            <select name="status" class="form-control" style="width:auto;min-width:140px;">
+                <option value="">All Status</option>
+                <option value="available" {{ request('status') === 'available' ? 'selected' : '' }}>Available</option>
+                <option value="borrowed" {{ request('status') === 'borrowed' ? 'selected' : '' }}>Borrowed</option>
+                <option value="reserved" {{ request('status') === 'reserved' ? 'selected' : '' }}>Reserved</option>
+                <option value="damaged" {{ request('status') === 'damaged' ? 'selected' : '' }}>Damaged</option>
+                <option value="lost" {{ request('status') === 'lost' ? 'selected' : '' }}>Lost</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="{{ route('admin.books.index') }}" class="btn btn-secondary">Reset</a>
+        </form>
+    </div>
+</div>
 
-<!-- Table -->
-<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-    <table class="w-full text-sm">
-        <thead>
-            <tr class="border-b border-gray-100">
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Cover</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Accession No.</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Title & Author</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Category</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Type</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Price</th>
-                <th class="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Actions</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-50">
-            @forelse($books as $book)
-            <tr class="hover:bg-slate-50 transition-colors">
-                <td class="px-6 py-4">
-                    @if($book->cover_image)
-                        <img src="{{ asset('storage/' . $book->cover_image) }}"
-                            class="w-9 h-13 object-cover rounded-lg shadow-sm" />
-                    @else
-                        <div class="w-9 h-13 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <span class="text-gray-300 text-xs font-bold">N/A</span>
+{{-- Books Table --}}
+<div class="card">
+    <div class="table-wrapper" style="border:none;border-radius:var(--radius-lg);box-shadow:none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Cover</th>
+                    <th>Accession No.</th>
+                    <th>Title &amp; Author</th>
+                    <th>Category</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($books as $book)
+                <tr>
+                    <td>
+                        @if($book->cover_image)
+                            <img src="{{ asset('storage/' . $book->cover_image) }}"
+                                style="width:36px;height:48px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border);">
+                        @else
+                            <div style="width:36px;height:48px;background:var(--blue-ultra-pale);border-radius:var(--radius);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px;color:var(--text-dim);"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            </div>
+                        @endif
+                    </td>
+                    <td>
+                        <code style="font-size:0.75rem;color:var(--text-muted);background:var(--surface-2);padding:0.2rem 0.5rem;border-radius:var(--radius);border:1px solid var(--border);">{{ $book->accession_no }}</code>
+                    </td>
+                    <td>
+                        <p style="font-weight:500;color:var(--text-head);font-size:0.875rem;">{{ $book->title }}</p>
+                        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.15rem;">{{ $book->author }}</p>
+                    </td>
+                    <td style="color:var(--text-muted);font-size:0.845rem;">{{ $book->category ?? '—' }}</td>
+                    <td>
+                        <span class="badge {{ $book->type === 'physical' ? 'badge-gold' : 'badge-blue' }}">
+                            {{ ucfirst($book->type) }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge
+                            {{ $book->status === 'available' ? 'badge-success' :
+                               ($book->status === 'borrowed' ? 'badge-warning' :
+                               ($book->status === 'reserved' ? 'badge-blue' :
+                               ($book->status === 'damaged' ? 'badge-danger' : 'badge-muted'))) }}">
+                            {{ ucfirst($book->status) }}
+                        </span>
+                    </td>
+                    <td style="font-size:0.855rem;font-weight:500;color:var(--text-head);">
+                        &#8369;{{ number_format($book->price, 2) }}
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:0.375rem;align-items:center;">
+                            <a href="{{ route('admin.books.show', $book) }}" class="btn btn-sm btn-secondary">View</a>
+                            <a href="{{ route('admin.books.edit', $book) }}" class="btn btn-sm btn-secondary">Edit</a>
+                            <form method="POST" action="{{ route('admin.books.destroy', $book) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    onclick="return confirm('Delete \'{{ addslashes($book->title) }}\'?')"
+                                    class="btn btn-sm btn-danger">
+                                    Delete
+                                </button>
+                            </form>
                         </div>
-                    @endif
-                </td>
-                <td class="px-6 py-4">
-                    <span class="font-mono text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-lg">{{ $book->accession_no }}</span>
-                </td>
-                <td class="px-6 py-4">
-                    <p class="font-semibold text-gray-800">{{ $book->title }}</p>
-                    <p class="text-xs text-gray-400 mt-0.5">{{ $book->author }}</p>
-                </td>
-                <td class="px-6 py-4 text-gray-500 text-sm">{{ $book->category ?? '—' }}</td>
-                <td class="px-6 py-4">
-                    <span class="px-2.5 py-1 rounded-lg text-xs font-semibold
-                        {{ $book->type === 'physical' ? 'bg-orange-50 text-orange-700' : 'bg-purple-50 text-purple-700' }}">
-                        {{ ucfirst($book->type) }}
-                    </span>
-                </td>
-                <td class="px-6 py-4">
-                    <span class="px-2.5 py-1 rounded-lg text-xs font-semibold
-                        {{ $book->status === 'available' ? 'bg-green-50 text-green-700' :
-                           ($book->status === 'borrowed' ? 'bg-yellow-50 text-yellow-700' :
-                           ($book->status === 'reserved' ? 'bg-blue-50 text-blue-700' :
-                           ($book->status === 'damaged' ? 'bg-red-50 text-red-700' :
-                           'bg-gray-50 text-gray-600'))) }}">
-                        {{ ucfirst($book->status) }}
-                    </span>
-                </td>
-                <td class="px-6 py-4 text-gray-700 font-medium">₱{{ number_format($book->price, 2) }}</td>
-                <td class="px-6 py-4">
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('admin.books.show', $book) }}"
-                            class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-blue-50 hover:text-blue-700 font-medium transition">
-                            View
-                        </a>
-                        <a href="{{ route('admin.books.edit', $book) }}"
-                            class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-yellow-50 hover:text-yellow-700 font-medium transition">
-                            Edit
-                        </a>
-                        <form method="POST" action="{{ route('admin.books.destroy', $book) }}">
-                            @csrf
-                            @method('DELETE')
-                            <button onclick="return confirm('Delete this book?')"
-                                class="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-700 font-medium transition">
-                                Delete
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="8" class="px-6 py-16 text-center">
-                    <p class="text-gray-300 text-4xl mb-3">📚</p>
-                    <p class="text-gray-400 text-sm font-medium">No books found.</p>
-                    <a href="{{ route('admin.books.create') }}" class="text-blue-600 text-sm font-semibold mt-2 inline-block hover:underline">Add your first book →</a>
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-    <div class="px-6 py-4 border-t border-gray-50">
-        {{ $books->links() }}
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            </div>
+                            <p class="empty-state-title">No books found</p>
+                            <p class="empty-state-text">Try adjusting your search or filters.</p>
+                            <a href="{{ route('admin.books.create') }}" class="btn btn-primary">Add First Book</a>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
+
+    @if($books->hasPages())
+    <div class="card-footer" style="display:flex;align-items:center;justify-content:space-between;">
+        <p style="font-size:0.8rem;color:var(--text-muted);">
+            Showing {{ $books->firstItem() }}–{{ $books->lastItem() }} of {{ $books->total() }} books
+        </p>
+        <div class="pagination">
+            {{ $books->links() }}
+        </div>
+    </div>
+    @endif
 </div>
+
 @endsection
