@@ -18,6 +18,61 @@
     </div>
 </div>
 
+{{-- Import Books --}}
+<div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header">
+        <h3 class="card-title">Import Books</h3>
+        <a href="{{ route('admin.books.template') }}" class="btn btn-sm btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Template
+        </a>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ route('admin.books.import') }}" enctype="multipart/form-data">
+            @csrf
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;">
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">
+                        CSV / Excel File <span class="required">*</span>
+                    </label>
+                    <input type="file" name="file" accept=".zip,.xlsx,.csv,.xls" ...>
+                    <p class="form-hint">
+                        For covers and PDFs, upload a <code>.zip</code> containing your 
+                        <code>import.csv</code>, a <code>covers/</code> folder, and a <code>pdfs/</code> folder.
+                        Name files after their <code>accession_no</code>.
+                    </p>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label">
+                        PDF Files
+                        <span style="font-size:0.7rem;color:var(--text-dim);font-weight:400;"> — for digital books only</span>
+                    </label>
+                    <input type="file" name="pdfs[]" accept=".pdf"
+                        class="form-control" style="font-size:0.8rem;padding:0.45rem 0.6rem;" multiple>
+                    <p class="form-hint">
+                        Optional. Name each PDF after its <code style="font-size:0.72rem;background:var(--surface-2);padding:0.1rem 0.3rem;border-radius:3px;border:1px solid var(--border);">accession_no</code>
+                        in the spreadsheet — e.g. <code style="font-size:0.72rem;background:var(--surface-2);padding:0.1rem 0.3rem;border-radius:3px;border:1px solid var(--border);">ACC-00002.pdf</code>.
+                    </p>
+                </div>
+
+            </div>
+
+            <div style="display:flex;align-items:center;gap:0.75rem;padding-top:1rem;border-top:1px solid var(--border);">
+                <button type="submit" class="btn btn-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    Import Books
+                </button>
+                <p style="font-size:0.775rem;color:var(--text-dim);margin:0;">
+                    Physical books don't need a PDF. Digital books without a PDF can have one added later via Edit.
+                </p>
+            </div>
+
+        </form>
+    </div>
+</div>
+
 {{-- Search & Filters --}}
 <div class="card" style="margin-bottom:1.5rem;">
     <div class="card-body" style="padding:1.125rem 1.5rem;">

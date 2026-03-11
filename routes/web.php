@@ -49,7 +49,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     
     // Resource route AFTER custom routes
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
-    Route::resource('books', App\Http\Controllers\Admin\BookController::class); // ADD THIS
+    Route::get('/books/template', [App\Http\Controllers\Admin\BookController::class, 'template'])->name('books.template');
+    Route::post('/books/import', [App\Http\Controllers\Admin\BookController::class, 'import'])->name('books.import');
+    Route::resource('books', App\Http\Controllers\Admin\BookController::class);
     
     Route::post('/users/{user}/toggle', [App\Http\Controllers\Admin\UserController::class, 'toggle'])->name('users.toggle');
     Route::post('/users/{user}/resend', [App\Http\Controllers\Admin\UserController::class, 'resendSetPassword'])->name('users.resend');
