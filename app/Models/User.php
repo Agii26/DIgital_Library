@@ -49,4 +49,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(AttendanceLog::class);
     }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'set_password_token_expires_at' => 'datetime', // ADD THIS
+        'password_set' => 'boolean',
+        'is_active' => 'boolean',
+    ];
 }
