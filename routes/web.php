@@ -17,7 +17,11 @@ Route::get('/debug-manifest', function() {
     return response()->json(['exists' => false]);
 });
 
-Route::get('/', fn() => redirect()->route('login'));
+// Add this BEFORE the auth routes
+Route::get('/', function () {
+    return view('welcome');
+})->name('home');
+
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
