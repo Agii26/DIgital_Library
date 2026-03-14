@@ -46,9 +46,9 @@ class UserController extends Controller
             'name'        => 'required|string|max:255',
             'email'       => 'required|email|unique:users,email',
             'role'        => 'required|in:faculty,student',
-            'student_id' => 'nullable|string',
+            'student_id'  => 'nullable|string',
             'department'  => 'nullable|string',
-            'rfid_tag' => 'nullable|string',
+            'rfid_tag'    => 'nullable|string',
         ]);
 
         if ($request->rfid_tag) {
@@ -74,10 +74,8 @@ class UserController extends Controller
             'set_password_token_expires_at' => now()->addHours(48),
         ]);
 
-       $user->assignRole($request->role);
-    
-        $setPasswordUrl = url('/set-password?token=' . $token . '&email=' . urlencode($request->email));
-        
+        $user->assignRole($request->role);
+
         try {
             $user->notify(new SetPasswordNotification($token));
         } catch (\Exception $e) {
@@ -85,10 +83,8 @@ class UserController extends Controller
         }
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'User created successfully!')
-            ->with('set_password_url', $setPasswordUrl)
-            ->with('set_password_name', $request->name);
-        }
+            ->with('success', 'User created successfully! A password setup email has been sent.');
+    }
 
     public function import(Request $request)
     {
@@ -116,8 +112,6 @@ class UserController extends Controller
             'set_password_token_expires_at' => now()->addHours(48),
         ]);
 
-        $setPasswordUrl = url('/set-password?token=' . $token . '&email=' . urlencode($user->email));
-
         try {
             $user->notify(new SetPasswordNotification($token));
         } catch (\Exception $e) {
@@ -125,10 +119,9 @@ class UserController extends Controller
         }
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'Password setup link generated!')
-            ->with('set_password_url', $setPasswordUrl)
-            ->with('set_password_name', $user->name);
+            ->with('success', 'Password setup email resent to ' . $user->name . '.');
     }
+
     public function edit(User $user)
     {
         return view('admin.users.edit', compact('user'));
@@ -141,10 +134,9 @@ class UserController extends Controller
             'role'       => 'required|in:faculty,student',
             'student_id' => 'nullable|string',
             'department' => 'nullable|string',
-            'rfid_tag' => 'nullable|string',
+            'rfid_tag'   => 'nullable|string',
         ]);
 
-        // Check student_id uniqueness manually
         if ($request->student_id) {
             $exists = User::where('student_id', $request->student_id)
                 ->where('id', '!=', $user->id)
@@ -179,12 +171,10 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        // Check for active borrows
         $activeBorrows = PhysicalBorrow::where('user_id', $user->id)
             ->whereIn('status', ['reserved', 'approved', 'claimed'])
             ->count();
 
-        // Check for unpaid penalties
         $unpaidPenalties = Penalty::where('user_id', $user->id)
             ->where('is_paid', false)
             ->count();
@@ -200,6 +190,7 @@ class UserController extends Controller
         $user->delete();
         return back()->with('success', 'User deleted successfully!');
     }
+
     public function passwordLinks()
     {
         $users = User::where('password_set', false)

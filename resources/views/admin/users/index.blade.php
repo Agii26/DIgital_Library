@@ -15,33 +15,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Add User
         </a>
-        <a href="{{ route('admin.users.password-links') }}" class="btn btn-secondary">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-            Password Links
-        </a>
     </div>
 </div>
-
-{{-- Password Setup Link Banner --}}
-@if(session('set_password_url'))
-<div style="background:var(--blue-ultra-pale);border:1px solid var(--blue-pale);border-radius:var(--radius-lg);padding:1.125rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
-    <div style="flex:1;overflow:hidden;">
-        <p style="font-size:0.8rem;font-weight:600;color:var(--blue);margin-bottom:0.375rem;">
-            Share this password setup link with <strong>{{ session('set_password_name') }}</strong>
-        </p>
-        <code id="setup-link" style="font-size:0.75rem;color:var(--blue-mid);background:var(--blue-pale);padding:0.5rem 0.75rem;border-radius:var(--radius);display:block;word-break:break-all;border:1px solid #bad3f0;">{{ session('set_password_url') }}</code>
-    </div>
-    <button onclick="copySetupLink()" class="btn btn-primary btn-sm" style="flex-shrink:0;margin-top:1.5rem;">
-        Copy Link
-    </button>
-</div>
-<script>
-function copySetupLink() {
-    navigator.clipboard.writeText(document.getElementById('setup-link').innerText);
-    alert('Link copied to clipboard!');
-}
-</script>
-@endif
 
 @if($errors->has('delete'))
 <div class="alert alert-danger">
@@ -71,7 +46,7 @@ function copySetupLink() {
             <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Reset</a>
         </form>
 
-        {{-- Import Form (separate) --}}
+        {{-- Import Form --}}
         <form method="POST" action="{{ route('admin.users.import') }}" enctype="multipart/form-data" style="display:flex;gap:0.5rem;align-items:center;">
             @csrf
             <input type="file" name="file" accept=".xlsx,.csv,.xls" class="form-control" style="width:auto;font-size:0.78rem;padding:0.4rem 0.6rem;" required />
