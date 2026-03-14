@@ -29,6 +29,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 // Set Password
 Route::get('/set-password', [SetPasswordController::class, 'show'])->name('set-password.show');
 Route::post('/set-password', [SetPasswordController::class, 'store'])->name('set-password.store');
+// Password Reset
+Route::get('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showForgotForm'])->name('password.request');
+Route::post('/forgot-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'sendResetLink'])->name('password.email');
+Route::get('/reset-password/{token}', [\App\Http\Controllers\Auth\PasswordResetController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [\App\Http\Controllers\Auth\PasswordResetController::class, 'resetPassword'])->name('password.update');
 
 // Messages (all roles)
 Route::middleware(['auth'])->group(function () {

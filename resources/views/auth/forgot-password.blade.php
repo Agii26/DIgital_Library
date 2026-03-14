@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In — Digital Library</title>
+    <title>Forgot Password — Digital Library</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body { background: var(--sidebar-bg); }
@@ -14,7 +14,6 @@
             grid-template-columns: 1fr 1fr;
         }
 
-        /* Left panel — dark navy branding */
         .login-left {
             background: var(--sidebar-bg-deep);
             border-right: 1px solid var(--sidebar-border);
@@ -70,8 +69,7 @@
         }
 
         .login-brand-divider {
-            width: 1px;
-            height: 40px;
+            width: 1px; height: 40px;
             background: var(--sidebar-border);
             margin: 2rem 0;
         }
@@ -83,7 +81,6 @@
             letter-spacing: 0.1em;
         }
 
-        /* Right panel — white form */
         .login-right {
             background: #f8f9fb;
             display: flex;
@@ -120,12 +117,19 @@
             box-shadow: var(--shadow-md);
         }
 
-        .login-footer-note {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            margin-top: 1.5rem;
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-top: 1.25rem;
+            transition: color 0.18s;
         }
+
+        .back-link:hover { color: var(--blue-bright); }
+        .back-link svg { width: 14px; height: 14px; }
 
         @media (max-width: 768px) {
             .login-page { grid-template-columns: 1fr; }
@@ -136,6 +140,7 @@
             .login-form-sub { color: var(--sidebar-text); }
             .form-label { color: var(--sidebar-text); }
             .form-control { background: var(--sidebar-bg-deep); border-color: var(--sidebar-border); color: #fff; }
+            .back-link { color: var(--sidebar-text-dim); }
         }
     </style>
 </head>
@@ -160,30 +165,27 @@
     <div class="login-right">
         <div class="login-form-wrap">
 
-            <h1 class="login-form-title">Welcome back</h1>
-            <p class="login-form-sub">Sign in to access the library system.</p>
+            <h1 class="login-form-title">Forgot Password</h1>
+            <p class="login-form-sub">Enter your email and we'll send you a reset link.</p>
 
             @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-
-            @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
+            <div class="alert alert-success" style="margin-bottom:1.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>{{ session('success') }}</span>
+            </div>
             @endif
 
             @if($errors->any())
-            <div class="alert alert-danger">
-                @foreach($errors->all() as $error)
-                <div>{{ $error }}</div>
-                @endforeach
+            <div class="alert alert-danger" style="margin-bottom:1.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:16px;height:16px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div>@foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach</div>
             </div>
             @endif
 
             <div class="login-box">
-                <form method="POST" action="{{ route('login') }}">
+                <form method="POST" action="{{ route('password.email') }}">
                     @csrf
-
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom:1.5rem;">
                         <label class="form-label" for="email">Email Address</label>
                         <input
                             type="email"
@@ -197,34 +199,16 @@
                             autofocus
                         >
                     </div>
-
-                    <div class="form-group" style="margin-bottom:1.5rem;">
-                        <label class="form-label" for="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            class="form-control"
-                            placeholder="Enter your password"
-                            autocomplete="current-password"
-                            required
-                        >
-                    </div>
-
                     <button type="submit" class="btn btn-primary w-full" style="padding:0.625rem;">
-                        Sign In
+                        Send Reset Link
                     </button>
-                    <div style="text-align:center;margin-top:1rem;">
-                        <a href="{{ route('password.request') }}" style="font-size:0.78rem;color:var(--text-muted);text-decoration:none;transition:color 0.18s;" onmouseover="this.style.color='var(--blue-bright)'" onmouseout="this.style.color='var(--text-muted)'">
-                            Forgot your password?
-                        </a>
-                    </div>
                 </form>
             </div>
 
-            <p class="login-footer-note">
-                Contact your administrator if you are unable to access your account.
-            </p>
+            <a href="{{ route('login') }}" class="back-link">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Back to Sign In
+            </a>
 
         </div>
     </div>

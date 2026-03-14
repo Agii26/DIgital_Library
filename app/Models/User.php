@@ -8,11 +8,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Auth\Passwords\CanResetPassword;
 
 
 class User extends Authenticatable
 {
-    use HasRoles, Notifiable, SoftDeletes;
+    use HasRoles, Notifiable, SoftDeletes, CanResetPassword;
 
     protected $fillable = [
         'name', 'email', 'password', 'rfid_tag',
