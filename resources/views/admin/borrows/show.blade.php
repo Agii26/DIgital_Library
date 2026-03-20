@@ -1,217 +1,181 @@
 @extends('layouts.app')
 
-@section('page-title', 'Manage Borrow')
+@section('page-title', 'Manage Borrows')
 
 @section('content')
 
-{{-- Page Header --}}
 <div class="page-title-wrap">
     <div>
-        <h1 class="page-title">Manage Borrow</h1>
-        <p class="page-subtitle">Review details and take action on this borrowing record</p>
+        <h1 class="page-title">{{ $user->name }}</h1>
+        <p class="page-subtitle">Process book returns for this patron</p>
     </div>
     <div class="page-actions">
-        <a href="{{ route('admin.borrows.index') }}" class="btn btn-secondary">
+        <a href="{{ route('admin.borrows.index', ['tab' => 'all']) }}" class="btn btn-secondary">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-            Back to Borrows
+            Back
         </a>
     </div>
 </div>
 
-<div style="max-width:760px;display:flex;flex-direction:column;gap:1.5rem;">
+@if(session('success'))
+<div class="alert alert-success">{{ session('success') }}</div>
+@endif
 
-    {{-- Borrow Info Card --}}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Borrow Details</h3>
+@if($errors->any())
+<div class="alert alert-danger">
+    @foreach($errors->all() as $error)<div>{{ $error }}</div>@endforeach
+</div>
+@endif
+
+@php
+    $visibleBorrows = $borrows->where('status', 'claimed');
+    $limit   = $user->role === 'faculty' ? 5 : 2;
+    $active  = $visibleBorrows->whereIn('status', ['approved','claimed'])->count();
+    $overdue = $visibleBorrows->filter(fn($b) => $b->status === 'claimed' && $b->due_date && now()->isAfter($b->due_date))->count();
+@endphp
+
+{{-- User Info Strip --}}
+<div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-body" style="padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;">
+        <div class="avatar avatar-lg">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
+        <div style="flex:1;">
+            <p style="font-size:1rem;font-weight:600;color:var(--text-head);">{{ $user->name }}</p>
+            <p style="font-size:0.8rem;color:var(--text-muted);">{{ $user->email }}
+                @if($user->student_id) &middot; {{ $user->student_id }} @endif
+            </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+            <div>
+                <p style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.35rem;">Borrow Limit</p>
+                <div style="display:flex;gap:4px;align-items:center;">
+                    @for($i = 0; $i < $limit; $i++)
+                    <div style="width:18px;height:8px;border-radius:2px;background:{{ $i < $active ? 'var(--blue-bright)' : 'var(--border)' }};"></div>
+                    @endfor
+                    <span style="font-size:0.75rem;color:var(--text-muted);margin-left:0.375rem;">{{ $active }}/{{ $limit }}</span>
+                </div>
+            </div>
+            <span class="badge {{ $user->role === 'faculty' ? 'badge-blue' : 'badge-muted' }}">{{ ucfirst($user->role) }}</span>
+            @if($overdue)
+            <span class="badge badge-danger">{{ $overdue }} Overdue</span>
+            @endif
+        </div>
+    </div>
+</div>
+
+{{-- Borrow Records --}}
+@if($visibleBorrows->isEmpty())
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        </div>
+        <p class="empty-state-title">No books to return</p>
+        <p class="empty-state-text">This user has no claimed books at the moment.</p>
+    </div>
+</div>
+@else
+
+<div style="display:flex;flex-direction:column;gap:1rem;">
+@foreach($visibleBorrows as $borrow)
+@php
+    $isOverdue    = $borrow->status === 'claimed' && $borrow->due_date && now()->isAfter($borrow->due_date);
+    $hasPenalties = $borrow->penalties && $borrow->penalties->count() > 0;
+@endphp
+
+<div class="card">
+
+    {{-- Top: Book + Status --}}
+    <div style="padding:1.125rem 1.5rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border);">
+        @if($borrow->book->cover_image)
+        <img src="{{ asset('storage/'.$borrow->book->cover_image) }}" alt="{{ $borrow->book->title }}"
+            style="width:40px;height:54px;object-fit:cover;border-radius:4px;flex-shrink:0;box-shadow:var(--shadow-sm);">
+        @else
+        <div style="width:40px;height:54px;background:linear-gradient(135deg,var(--navy-mid),var(--navy));border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.35)" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        @endif
+        <div style="flex:1;min-width:0;">
+            <p style="font-size:0.9rem;font-weight:600;color:var(--text-head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $borrow->book->title }}</p>
+            <p style="font-size:0.775rem;color:var(--text-muted);">
+                {{ $borrow->book->author }} &middot;
+                <code style="font-size:0.72rem;background:var(--surface-2);padding:0.1rem 0.4rem;border-radius:3px;border:1px solid var(--border);">{{ $borrow->book->accession_no }}</code>
+            </p>
+        </div>
+        <div style="display:flex;gap:0.4rem;align-items:center;flex-shrink:0;">
             <span class="badge
-                {{ $borrow->status === 'reserved'  ? 'badge-blue' :
-                   ($borrow->status === 'approved'  ? 'badge-warning' :
-                   ($borrow->status === 'claimed'   ? 'badge-gold' :
-                   ($borrow->status === 'returned'  ? 'badge-success' :
-                   'badge-muted'))) }}" style="font-size:0.75rem;padding:0.3rem 0.75rem;">
+                {{ $borrow->status === 'reserved' ? 'badge-blue' :
+                   ($borrow->status === 'approved' ? 'badge-warning' :
+                   ($borrow->status === 'claimed'  ? 'badge-gold' : 'badge-success')) }}">
                 {{ ucfirst($borrow->status) }}
             </span>
-        </div>
-        <div class="card-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;">
-
-                {{-- Borrower --}}
-                <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;">
-                    <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.5rem;">Borrower</p>
-                    <div style="display:flex;align-items:center;gap:0.625rem;">
-                        <div class="avatar avatar-sm">{{ strtoupper(substr($borrow->user->name ?? 'D', 0, 1)) }}</div>
-                        <div>
-                            <p style="font-size:0.875rem;font-weight:600;color:var(--text-head);">
-                                {{ $borrow->user->name ?? 'Deleted User' }}
-                                @if($borrow->user && $borrow->user->trashed())
-                                    <span class="badge badge-danger" style="font-size:0.6rem;margin-left:0.3rem;">Deleted</span>
-                                @endif
-                            </p>
-                            @if($borrow->user)
-                            <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.1rem;">
-                                {{ ucfirst($borrow->user->role) }}
-                                @if($borrow->user->student_id)
-                                    &middot; {{ $borrow->user->student_id }}
-                                @endif
-                            </p>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Book --}}
-                <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;">
-                    <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.5rem;">Book</p>
-                    <p style="font-size:0.875rem;font-weight:600;color:var(--text-head);margin-bottom:0.2rem;">{{ $borrow->book->title }}</p>
-                    <code style="font-size:0.72rem;color:var(--text-muted);background:var(--border);padding:0.15rem 0.4rem;border-radius:3px;">{{ $borrow->book->accession_no }}</code>
-                </div>
-
-                {{-- Reserved At --}}
-                <div>
-                    <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.25rem;">Reserved At</p>
-                    <p style="font-size:0.875rem;font-weight:500;color:var(--text-head);">
-                        {{ $borrow->reserved_at?->format('M d, Y h:i A') ?? '—' }}
-                    </p>
-                </div>
-
-                {{-- Due Date --}}
-                @if($borrow->due_date)
-                <div>
-                    <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.25rem;">Due Date</p>
-                    <p style="font-size:0.875rem;font-weight:600;color:{{ now()->isAfter($borrow->due_date) ? 'var(--danger)' : 'var(--text-head)' }};">
-                        {{ $borrow->due_date->format('M d, Y') }}
-                        @if(now()->isAfter($borrow->due_date))
-                            <span class="badge badge-danger" style="margin-left:0.375rem;font-size:0.62rem;">
-                                {{ now()->diffInDays($borrow->due_date) }}d overdue
-                            </span>
-                        @endif
-                    </p>
-                </div>
-                @endif
-
-                {{-- Condition --}}
-                @if($borrow->condition)
-                <div>
-                    <p style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.25rem;">Return Condition</p>
-                    <span class="badge {{ $borrow->condition === 'good' ? 'badge-success' : ($borrow->condition === 'damaged' ? 'badge-warning' : 'badge-danger') }}">
-                        {{ ucfirst($borrow->condition) }}
-                    </span>
-                </div>
-                @endif
-
-            </div>
+            @if($isOverdue)<span class="badge badge-danger">Overdue</span>@endif
         </div>
     </div>
 
-    {{-- Actions Card --}}
-    @if(in_array($borrow->status, ['reserved', 'approved', 'claimed']))
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Actions</h3>
+    {{-- Middle: Dates --}}
+    <div style="padding:0.875rem 1.5rem;display:flex;gap:2rem;flex-wrap:wrap;border-bottom:1px solid var(--border);">
+        <div>
+            <p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.2rem;">Reserved</p>
+            <p style="font-size:0.835rem;color:var(--text-head);">{{ $borrow->reserved_at?->format('M d, Y') ?? '—' }}</p>
         </div>
-        <div class="card-body">
-
-            @if($borrow->status === 'reserved')
-            <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;">
-                This reservation is pending approval. Approve to notify the borrower their book is ready for pickup, or cancel if unavailable.
+        @if($borrow->due_date)
+        <div>
+            <p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.2rem;">Due Date</p>
+            <p style="font-size:0.835rem;font-weight:{{ $isOverdue ? '600' : '400' }};color:{{ $isOverdue ? 'var(--danger)' : 'var(--text-head)' }};">
+                {{ $borrow->due_date->format('M d, Y') }}
+                @if($isOverdue)
+                    <span style="font-weight:400;font-size:0.775rem;"> — {{ now()->diffInDays($borrow->due_date) }}d overdue</span>
+                @elseif($borrow->status === 'claimed')
+                    <span style="font-weight:400;font-size:0.775rem;color:var(--text-muted);"> — {{ now()->diffInDays($borrow->due_date) }}d left</span>
+                @endif
             </p>
-            <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
-                <form method="POST" action="{{ route('admin.borrows.approve', $borrow) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-success">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                        Approve Reservation
-                    </button>
-                </form>
-                <form method="POST" action="{{ route('admin.borrows.cancel', $borrow) }}">
-                    @csrf
-                    <button type="submit" class="btn btn-danger"
-                        onclick="return confirm('Cancel this reservation?')">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        Cancel Reservation
-                    </button>
-                </form>
-            </div>
-            @endif
-
-            @if($borrow->status === 'approved')
-            <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;">
-                Scan the borrower's RFID card to confirm book pickup.
-            </p>
-            <form method="POST" action="{{ route('admin.borrows.claim', $borrow) }}">
-                @csrf
-                <div style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap;">
-                    <div class="form-group" style="flex:1;min-width:200px;margin-bottom:0;">
-                        <label class="form-label" for="rfid_tag">
-                            RFID Tag
-                            <span style="font-size:0.7rem;color:var(--text-dim);font-weight:400;"> — scan or type</span>
-                        </label>
-                        <input type="text" id="rfid_tag" name="rfid_tag"
-                            class="form-control" placeholder="Scan RFID tag..." autofocus required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="flex-shrink:0;">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        Mark as Claimed
-                    </button>
-                </div>
-            </form>
-            @endif
-
-            @if($borrow->status === 'claimed')
-            <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;">
-                Select the condition of the returned book. Selecting "Damaged" or "Lost" will generate a penalty automatically.
-            </p>
-            <form method="POST" action="{{ route('admin.borrows.return', $borrow) }}">
-                @csrf
-                <div style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap;">
-                    <div class="form-group" style="flex:1;min-width:180px;margin-bottom:0;">
-                        <label class="form-label" for="condition">Book Condition</label>
-                        <select id="condition" name="condition" class="form-control" required>
-                            <option value="">Select condition...</option>
-                            <option value="good">Good</option>
-                            <option value="damaged">Damaged</option>
-                            <option value="lost">Lost</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-gold" style="flex-shrink:0;">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                        Process Return
-                    </button>
-                </div>
-            </form>
-            @endif
-
         </div>
-    </div>
-    @endif
-
-    {{-- Penalties Card --}}
-    @if($borrow->penalties && $borrow->penalties->count() > 0)
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Penalties</h3>
-            <span style="font-size:0.8rem;color:var(--text-muted);">
-                Total: <strong style="color:var(--danger);">&#8369;{{ number_format($borrow->penalties->sum('amount'), 2) }}</strong>
+        @endif
+        @if($borrow->returned_at)
+        <div>
+            <p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.2rem;">Returned</p>
+            <p style="font-size:0.835rem;color:var(--text-head);">{{ $borrow->returned_at->format('M d, Y') }}</p>
+        </div>
+        @endif
+        @if($borrow->condition)
+        <div>
+            <p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.2rem;">Condition</p>
+            <span class="badge {{ $borrow->condition === 'good' ? 'badge-success' : ($borrow->condition === 'damaged' ? 'badge-warning' : 'badge-danger') }}">
+                {{ ucfirst($borrow->condition) }}
             </span>
         </div>
-        @foreach($borrow->penalties as $penalty)
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:0.875rem 1.5rem;border-bottom:1px solid var(--border);">
-            <div>
-                <p style="font-size:0.855rem;font-weight:500;color:var(--text-head);">{{ ucfirst($penalty->type) }} Fine</p>
-                <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.1rem;">{{ $penalty->created_at->format('M d, Y') }}</p>
-            </div>
-            <div style="display:flex;align-items:center;gap:0.75rem;">
-                <p style="font-size:0.9rem;font-weight:600;color:var(--danger);">&#8369;{{ number_format($penalty->amount, 2) }}</p>
-                <span class="badge {{ $penalty->is_paid ? 'badge-success' : 'badge-danger' }}">
-                    {{ $penalty->is_paid ? 'Paid' : 'Unpaid' }}
-                </span>
-            </div>
+        @endif
+        @if($hasPenalties)
+        <div style="margin-left:auto;">
+            <p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.2rem;">Penalties</p>
+            <p style="font-size:0.835rem;font-weight:600;color:var(--danger);">
+                &#8369;{{ number_format($borrow->penalties->sum('amount'), 2) }}
+                <span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);">({{ $borrow->penalties->where('is_paid', false)->count() }} unpaid)</span>
+            </p>
         </div>
-        @endforeach
+        @endif
     </div>
-    @endif
 
+    {{-- Bottom: Return Action --}}
+    <div style="padding:0.875rem 1.5rem;background:var(--surface-2);border-radius:0 0 var(--radius-lg) var(--radius-lg);">
+        <form method="POST" action="{{ route('admin.borrows.return', $borrow) }}"
+            style="display:flex;gap:0.5rem;align-items:flex-end;flex-wrap:wrap;">
+            @csrf
+            <div class="form-group" style="flex:1;min-width:200px;margin-bottom:0;">
+                <label class="form-label" style="font-size:0.75rem;">Select return condition</label>
+                <select name="condition" class="form-control" required>
+                    <option value="">Choose condition...</option>
+                    <option value="good">Good — no issues</option>
+                    <option value="damaged">Damaged — fine applies</option>
+                    <option value="lost">Lost — replacement fine</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-sm btn-gold" style="flex-shrink:0;">Process Return</button>
+        </form>
+    </div>
 </div>
+@endforeach
+</div>
+@endif
 
 @endsection

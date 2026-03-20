@@ -439,5 +439,6 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 
+@stack('scripts')
 </body>
 </html>

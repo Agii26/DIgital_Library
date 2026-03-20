@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In — Digital Library</title>
+    <title>Sign In — BES Digital Library</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { background: var(--sidebar-bg); }
+        body { background: var(--sidebar-bg-deep); margin: 0; }
 
         .login-page {
             min-height: 100vh;
@@ -14,128 +14,231 @@
             grid-template-columns: 1fr 1fr;
         }
 
-        /* Left panel — dark navy branding */
+        /* ── LEFT: Full image panel ── */
         .login-left {
-            background: var(--sidebar-bg-deep);
-            border-right: 1px solid var(--sidebar-border);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 4rem;
             position: relative;
             overflow: hidden;
+            background: var(--sidebar-bg-deep);
         }
 
-        .login-left::before {
-            content: '';
-            position: absolute;
-            top: -80px; left: -80px;
-            width: 320px; height: 320px;
-            border-radius: 50%;
-            background: rgba(30,77,140,0.15);
-            pointer-events: none;
+        .login-left-img {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            object-position: center;
+            opacity: 0.35;
         }
 
-        .login-left::after {
-            content: '';
-            position: absolute;
-            bottom: -60px; right: -60px;
-            width: 240px; height: 240px;
-            border-radius: 50%;
-            background: rgba(184,146,42,0.06);
-            pointer-events: none;
+        /* Dark gradient overlay — stronger at edges, lighter in center */
+        .login-left-overlay {
+            position: absolute; inset: 0;
+            background:
+                linear-gradient(to right, rgba(9,21,37,0.6) 0%, rgba(9,21,37,0.2) 100%),
+                linear-gradient(to bottom, rgba(9,21,37,0.4) 0%, rgba(9,21,37,0.4) 100%);
         }
 
-        .login-brand-line {
-            width: 40px; height: 3px;
+        .login-left-content {
+            position: relative; z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 3rem;
+        }
+
+        .login-left-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.625rem;
+            align-self: flex-start;
+        }
+
+        .login-left-badge-line {
+            width: 28px; height: 2px;
             background: linear-gradient(90deg, var(--gold), var(--gold-light));
             border-radius: 2px;
-            margin-bottom: 1.5rem;
+            flex-shrink: 0;
         }
 
-        .login-brand-name {
+        .login-left-badge-text {
+            font-size: 0.68rem; font-weight: 600;
+            color: var(--gold-light);
+            text-transform: uppercase; letter-spacing: 0.14em;
+        }
+
+        .login-left-center {
+            text-align: center;
+        }
+
+        .login-left-school {
             font-family: var(--font-serif);
-            font-size: 2.25rem;
+            font-size: clamp(1.5rem, 2.5vw, 2.25rem);
             font-weight: 700;
-            color: #ffffff;
+            color: #fff;
             line-height: 1.2;
             margin-bottom: 0.75rem;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
         }
 
-        .login-brand-tagline {
-            font-size: 0.875rem;
-            color: var(--sidebar-text);
-            line-height: 1.6;
-            max-width: 300px;
+        .login-left-sub {
+            font-size: 0.8rem;
+            color: rgba(168,188,212,0.85);
+            font-style: italic;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.4);
         }
 
-        .login-brand-divider {
-            width: 1px;
-            height: 40px;
-            background: var(--sidebar-border);
-            margin: 2rem 0;
+        .login-left-footer {
+            font-size: 0.68rem;
+            color: rgba(168,188,212,0.45);
+            letter-spacing: 0.08em;
+            text-align: center;
         }
 
-        .login-brand-meta {
-            font-size: 0.75rem;
-            color: var(--sidebar-text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        /* Right panel — white form */
+        /* ── RIGHT: Clean form panel ── */
         .login-right {
-            background: #f8f9fb;
+            background: #f4f6f9;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 4rem 3rem;
+            padding: 3.5rem 3rem;
+            border-left: 1px solid rgba(184,146,42,0.15);
         }
 
         .login-form-wrap {
             width: 100%;
-            max-width: 380px;
+            max-width: 360px;
+        }
+
+        /* Header */
+        .login-form-eyebrow {
+            font-size: 0.68rem; font-weight: 600;
+            color: var(--gold);
+            text-transform: uppercase; letter-spacing: 0.14em;
+            margin-bottom: 0.5rem;
         }
 
         .login-form-title {
             font-family: var(--font-serif);
-            font-size: 1.6rem;
-            font-weight: 600;
+            font-size: 1.875rem; font-weight: 700;
             color: var(--text-head);
-            margin-bottom: 0.35rem;
+            line-height: 1.2; margin-bottom: 0.5rem;
         }
 
         .login-form-sub {
             font-size: 0.835rem;
             color: var(--text-muted);
+            line-height: 1.5;
             margin-bottom: 2rem;
         }
 
-        .login-box {
+        /* Card */
+        .login-card {
             background: var(--surface);
             border: 1px solid var(--border);
+            border-top: 3px solid var(--gold);
             border-radius: var(--radius-lg);
             padding: 2rem;
             box-shadow: var(--shadow-md);
         }
 
-        .login-footer-note {
-            text-align: center;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            margin-top: 1.5rem;
+        .login-card .form-group { margin-bottom: 1.25rem; }
+        .login-card .form-group:last-of-type { margin-bottom: 1.5rem; }
+
+        .login-submit {
+            width: 100%;
+            padding: 0.7rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
         }
 
+        .login-forgot {
+            display: block;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.775rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.18s;
+        }
+
+        .login-forgot:hover { color: var(--blue-bright); }
+
+        /* Divider */
+        .login-divider {
+            display: flex; align-items: center; gap: 0.75rem;
+            margin: 1.25rem 0;
+        }
+
+        .login-divider-line { flex: 1; height: 1px; background: var(--border); }
+
+        .login-divider-text {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+        }
+
+        /* Back to home */
+        .login-back {
+            display: block;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 0.55rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            transition: all 0.18s;
+        }
+
+        .login-back:hover {
+            color: var(--text-head);
+            border-color: var(--border-strong);
+            background: var(--surface-2);
+        }
+
+        /* Footer note */
+        .login-footer-note {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-top: 1.25rem;
+            line-height: 1.6;
+        }
+
+        /* ── MOBILE ── */
         @media (max-width: 768px) {
             .login-page { grid-template-columns: 1fr; }
             .login-left { display: none; }
-            .login-right { background: var(--sidebar-bg); }
-            .login-box { background: var(--sidebar-active); border-color: var(--sidebar-border); }
+            .login-right {
+                background: var(--sidebar-bg);
+                border-left: none;
+                padding: 2rem 1.5rem;
+            }
+            .login-card {
+                background: rgba(255,255,255,0.05);
+                border-color: var(--sidebar-border);
+                border-top-color: var(--gold);
+            }
             .login-form-title { color: #fff; }
             .login-form-sub { color: var(--sidebar-text); }
+            .login-form-eyebrow { color: var(--gold-light); }
             .form-label { color: var(--sidebar-text); }
-            .form-control { background: var(--sidebar-bg-deep); border-color: var(--sidebar-border); color: #fff; }
+            .form-control {
+                background: var(--sidebar-bg-deep);
+                border-color: var(--sidebar-border);
+                color: #fff;
+            }
+            .login-forgot { color: var(--sidebar-text-dim); }
+            .login-back {
+                background: rgba(255,255,255,0.05);
+                border-color: var(--sidebar-border);
+                color: var(--sidebar-text);
+            }
+            .login-footer-note { color: var(--sidebar-text-dim); }
+            .login-divider-line { background: var(--sidebar-border); }
         }
     </style>
 </head>
@@ -143,43 +246,48 @@
 
 <div class="login-page">
 
-    {{-- Left Branding Panel --}}
+    {{-- ── LEFT: Logo image panel ── --}}
     <div class="login-left">
-        <div style="position:relative;z-index:1;">
-            <div class="login-brand-line"></div>
-            <div class="login-brand-name">Digital<br>Library</div>
-            <p class="login-brand-tagline">
-                A centralized system for managing library resources, borrowing records, attendance, and patron accounts.
-            </p>
-            <div class="login-brand-divider"></div>
-            <div class="login-brand-meta">Management System</div>
+        <img src="{{ asset('images/BES_logo.jfif') }}" alt="BES Logo" class="login-left-img">
+        <div class="login-left-overlay"></div>
+        <div class="login-left-content">
+            <div class="login-left-badge">
+                <div class="login-left-badge-line"></div>
+                <span class="login-left-badge-text">BES Digital Library</span>
+            </div>
+            <div class="login-left-center">
+                <div class="login-left-school">Bulacan Ecumenical School</div>
+                <p class="login-left-sub">Home of God-fearing Achievers</p>
+            </div>
+            <div class="login-left-footer">Library Management System &mdash; {{ date('Y') }}</div>
         </div>
     </div>
 
-    {{-- Right Form Panel --}}
+    {{-- ── RIGHT: Form panel ── --}}
     <div class="login-right">
         <div class="login-form-wrap">
 
-            <h1 class="login-form-title">Welcome back</h1>
-            <p class="login-form-sub">Sign in to access the library system.</p>
+            <p class="login-form-eyebrow">Welcome back</p>
+            <h1 class="login-form-title">Sign in to your<br>account</h1>
+            <p class="login-form-sub">Enter your credentials to access the library system.</p>
 
             @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
+            <div class="alert alert-success" style="margin-bottom:1.25rem;">{{ session('success') }}</div>
             @endif
 
             @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
+            <div class="alert alert-danger" style="margin-bottom:1.25rem;">{{ session('error') }}</div>
             @endif
 
             @if($errors->any())
-            <div class="alert alert-danger">
+            <div class="alert alert-danger" style="margin-bottom:1.25rem;">
                 @foreach($errors->all() as $error)
                 <div>{{ $error }}</div>
                 @endforeach
             </div>
             @endif
 
-            <div class="login-box">
+            <div class="login-card">
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
 
@@ -191,14 +299,14 @@
                             name="email"
                             class="form-control"
                             value="{{ old('email') }}"
-                            placeholder="Enter your email"
+                            placeholder="you@example.com"
                             autocomplete="email"
                             required
                             autofocus
                         >
                     </div>
 
-                    <div class="form-group" style="margin-bottom:1.5rem;">
+                    <div class="form-group">
                         <label class="form-label" for="password">Password</label>
                         <input
                             type="password"
@@ -211,19 +319,26 @@
                         >
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-full" style="padding:0.625rem;">
+                    <button type="submit" class="btn btn-primary login-submit">
                         Sign In
                     </button>
-                    <div style="text-align:center;margin-top:1rem;">
-                        <a href="{{ route('password.request') }}" style="font-size:0.78rem;color:var(--text-muted);text-decoration:none;transition:color 0.18s;" onmouseover="this.style.color='var(--blue-bright)'" onmouseout="this.style.color='var(--text-muted)'">
-                            Forgot your password?
-                        </a>
-                    </div>
+
+                    <a href="{{ route('password.request') }}" class="login-forgot">
+                        Forgot your password?
+                    </a>
                 </form>
             </div>
 
+            <div class="login-divider">
+                <div class="login-divider-line"></div>
+                <span class="login-divider-text">or</span>
+                <div class="login-divider-line"></div>
+            </div>
+
+            <a href="{{ url('/') }}" class="login-back">Back to Home</a>
+
             <p class="login-footer-note">
-                Contact your administrator if you are unable to access your account.
+                Contact your administrator if you cannot access your account.
             </p>
 
         </div>

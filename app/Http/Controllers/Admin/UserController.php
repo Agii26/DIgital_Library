@@ -203,4 +203,16 @@ class UserController extends Controller
 
         return view('admin.users.password-links', compact('users'));
     }
+    public function template()
+    {
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="users-import-template.xlsx"',
+        ];
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\UsersTemplateExport,
+            'users-import-template.xlsx'
+        );
+    }
 }

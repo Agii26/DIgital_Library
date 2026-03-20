@@ -54,26 +54,29 @@ Route::middleware(['auth'])->group(function () {
 // Admin Routes
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    
-    // MUST be before resource route
+
+    // Users — custom routes BEFORE resource
     Route::get('/users/password-links', [App\Http\Controllers\Admin\UserController::class, 'passwordLinks'])->name('users.password-links');
+    Route::get('/users/template', [App\Http\Controllers\Admin\UserController::class, 'template'])->name('users.template');
     Route::post('/users/import', [App\Http\Controllers\Admin\UserController::class, 'import'])->name('users.import');
-    
-    // Resource route AFTER custom routes
     Route::resource('users', App\Http\Controllers\Admin\UserController::class);
+    Route::post('/users/{user}/toggle', [App\Http\Controllers\Admin\UserController::class, 'toggle'])->name('users.toggle');
+    Route::post('/users/{user}/resend', [App\Http\Controllers\Admin\UserController::class, 'resendSetPassword'])->name('users.resend');
+
+    // Books — custom routes BEFORE resource
     Route::get('/books/template', [App\Http\Controllers\Admin\BookController::class, 'template'])->name('books.template');
     Route::post('/books/import', [App\Http\Controllers\Admin\BookController::class, 'import'])->name('books.import');
     Route::resource('books', App\Http\Controllers\Admin\BookController::class);
     
-    Route::post('/users/{user}/toggle', [App\Http\Controllers\Admin\UserController::class, 'toggle'])->name('users.toggle');
-    Route::post('/users/{user}/resend', [App\Http\Controllers\Admin\UserController::class, 'resendSetPassword'])->name('users.resend');
-    
     Route::get('/borrows', [App\Http\Controllers\Admin\BorrowController::class, 'index'])->name('borrows.index');
-    Route::post('/borrows/{borrow}/approve', [App\Http\Controllers\Admin\BorrowController::class, 'approve'])->name('borrows.approve');
-    Route::post('/borrows/{borrow}/claim', [App\Http\Controllers\Admin\BorrowController::class, 'claim'])->name('borrows.claim');
-    Route::post('/borrows/{borrow}/return', [App\Http\Controllers\Admin\BorrowController::class, 'returning'])->name('borrows.return');
-    Route::post('/borrows/{borrow}/cancel', [App\Http\Controllers\Admin\BorrowController::class, 'cancel'])->name('borrows.cancel');
-    Route::get('/borrows/{borrow}', [App\Http\Controllers\Admin\BorrowController::class, 'show'])->name('borrows.show');
+Route::post('/borrows/approve-all', [App\Http\Controllers\Admin\BorrowController::class, 'approveAll'])->name('borrows.approve-all');
+Route::get('/borrows/{user}', [App\Http\Controllers\Admin\BorrowController::class, 'show'])->name('borrows.show');
+Route::post('/borrows/rfid-lookup', [App\Http\Controllers\Admin\BorrowController::class, 'rfidLookup'])->name('borrows.rfid-lookup');
+Route::post('/borrows/claim-all', [App\Http\Controllers\Admin\BorrowController::class, 'claimAll'])->name('borrows.claim-all');
+Route::post('/borrows/{borrow}/approve', [App\Http\Controllers\Admin\BorrowController::class, 'approve'])->name('borrows.approve');
+Route::post('/borrows/{borrow}/claim', [App\Http\Controllers\Admin\BorrowController::class, 'claim'])->name('borrows.claim');
+Route::post('/borrows/{borrow}/return', [App\Http\Controllers\Admin\BorrowController::class, 'returning'])->name('borrows.return');
+Route::post('/borrows/{borrow}/cancel', [App\Http\Controllers\Admin\BorrowController::class, 'cancel'])->name('borrows.cancel');
     Route::get('/penalties', [App\Http\Controllers\Admin\PenaltyController::class, 'index'])->name('penalties.index');
     Route::post('/penalties/{penalty}/mark-paid', [App\Http\Controllers\Admin\PenaltyController::class, 'markPaid'])->name('penalties.mark-paid');
     Route::post('/penalties/mark-all-paid', [App\Http\Controllers\Admin\PenaltyController::class, 'markAllPaid'])->name('penalties.mark-all-paid');
@@ -87,6 +90,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/settings', [App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('settings.update');
     Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');
+    
 });
 
 // Faculty Routes
