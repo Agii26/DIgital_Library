@@ -65,8 +65,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Books — custom routes BEFORE resource
     Route::get('/books/template', [App\Http\Controllers\Admin\BookController::class, 'template'])->name('books.template');
+    Route::get('/books/search', [App\Http\Controllers\Admin\BookController::class, 'search'])->name('books.search');
     Route::post('/books/import', [App\Http\Controllers\Admin\BookController::class, 'import'])->name('books.import');
     Route::resource('books', App\Http\Controllers\Admin\BookController::class);
+    Route::post('/book-copies/{copy}/update-status', [App\Http\Controllers\Admin\BookController::class, 'updateCopy'])->name('book-copies.update-status');
+    Route::post('/book-copies/{copy}/destroy', [App\Http\Controllers\Admin\BookController::class, 'destroyCopy'])->name('book-copies.destroy');
+    // Book search API for the create form dropdown
+    
     
     Route::get('/borrows', [App\Http\Controllers\Admin\BorrowController::class, 'index'])->name('borrows.index');
 Route::post('/borrows/approve-all', [App\Http\Controllers\Admin\BorrowController::class, 'approveAll'])->name('borrows.approve-all');

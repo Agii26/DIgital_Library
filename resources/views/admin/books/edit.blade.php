@@ -7,7 +7,7 @@
 <div class="page-title-wrap">
     <div>
         <h1 class="page-title">Edit Book</h1>
-        <p class="page-subtitle">Update book details and cover image</p>
+        <p class="page-subtitle">Update book details and manage copies</p>
     </div>
     <div class="page-actions">
         <a href="{{ route('admin.books.index') }}" class="btn btn-secondary">
@@ -34,19 +34,14 @@
         <div class="card">
             <div class="card-header">
                 <span class="card-title">Book Information</span>
-                <span class="badge badge-muted">Accession #{{ $book->accession_no }}</span>
+                {{-- Show overall status derived from copies --}}
+                @php $status = $book->status; @endphp
+                <span class="badge {{ $status === 'available' ? 'badge-success' : 'badge-warning' }}">
+                    {{ ucfirst($status) }}
+                </span>
             </div>
             <div class="card-body">
                 <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;">
-
-                    <div class="form-group">
-                        <label class="form-label">Accession No.</label>
-                        <input type="text" value="{{ $book->accession_no }}"
-                            class="form-control"
-                            style="background:var(--surface-2);color:var(--text-muted);cursor:not-allowed;"
-                            disabled />
-                        <span class="form-hint">Read-only — cannot be changed</span>
-                    </div>
 
                     <div class="form-group">
                         <label class="form-label">Type</label>
@@ -55,6 +50,15 @@
                             style="background:var(--surface-2);color:var(--text-muted);cursor:not-allowed;"
                             disabled />
                         <span class="form-hint">Read-only — cannot be changed</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Total Copies</label>
+                        <input type="text" value="{{ $book->quantity }} cop{{ $book->quantity === 1 ? 'y' : 'ies' }} ({{ $book->available_copies }} available)"
+                            class="form-control"
+                            style="background:var(--surface-2);color:var(--text-muted);cursor:not-allowed;"
+                            disabled />
+                        <span class="form-hint">Manage individual copies below</span>
                     </div>
 
                     <div class="form-group">
@@ -81,17 +85,6 @@
                             step="0.01" min="0" class="form-control" placeholder="0.00" required />
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Status <span class="required">*</span></label>
-                        <select name="status" class="form-control" required>
-                            <option value="available" {{ old('status', $book->status) === 'available' ? 'selected' : '' }}>Available</option>
-                            <option value="borrowed"  {{ old('status', $book->status) === 'borrowed'  ? 'selected' : '' }}>Borrowed</option>
-                            <option value="reserved"  {{ old('status', $book->status) === 'reserved'  ? 'selected' : '' }}>Reserved</option>
-                            <option value="damaged"   {{ old('status', $book->status) === 'damaged'   ? 'selected' : '' }}>Damaged</option>
-                            <option value="lost"      {{ old('status', $book->status) === 'lost'      ? 'selected' : '' }}>Lost</option>
-                        </select>
-                    </div>
-
                     <div class="form-group" style="grid-column:1 / -1;">
                         <label class="form-label">Description</label>
                         <textarea name="description" rows="3" class="form-control"
@@ -100,6 +93,77 @@
                     </div>
 
                 </div>
+            </div>
+        </div>
+
+        {{-- Copies Management --}}
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Copies</span>
+                <span class="badge badge-muted">{{ $book->copies->count() }} total</span>
+            </div>
+            <div class="table-wrapper" style="border:none;box-shadow:none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Accession No.</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($book->copies as $copy)
+                        <tr>
+                            <td>
+                                <code style="font-size:0.75rem;color:var(--text-muted);background:var(--surface-2);padding:0.2rem 0.5rem;border-radius:var(--radius);border:1px solid var(--border);">
+                                    {{ $copy->accession_no }}
+                                </code>
+                            </td>
+                            <td>
+                                <span class="badge
+                                    {{ $copy->status === 'available' ? 'badge-success' :
+                                       ($copy->status === 'borrowed'  ? 'badge-warning' :
+                                       ($copy->status === 'reserved'  ? 'badge-blue' :
+                                       ($copy->status === 'damaged'   ? 'badge-danger' : 'badge-muted'))) }}">
+                                    {{ ucfirst($copy->status) }}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display:flex;gap:0.5rem;align-items:center;">
+                                    {{-- Update copy status --}}
+                                    <form method="POST" action="{{ route('admin.book-copies.update-status', $copy) }}" style="display:flex;gap:0.375rem;align-items:center;">
+                                        @csrf
+                                        <select name="status" class="form-control" style="font-size:0.78rem;padding:0.25rem 0.5rem;height:auto;width:auto;">
+                                            @foreach(['available','borrowed','reserved','damaged','lost'] as $s)
+                                                <option value="{{ $s }}" {{ $copy->status === $s ? 'selected' : '' }}>{{ ucfirst($s) }}</option>
+                                            @endforeach
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-secondary">Update</button>
+                                    </form>
+
+                                    {{-- Remove copy --}}
+                                    @if($book->copies->count() > 1)
+                                    <form method="POST" action="{{ route('admin.book-copies.destroy', $copy) }}">
+                                        @csrf
+                                        <button type="submit"
+                                            onclick="return confirm('Remove copy {{ $copy->accession_no }}?')"
+                                            class="btn btn-sm btn-danger">
+                                            Remove
+                                        </button>
+                                    </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="3" style="text-align:center;color:var(--text-dim);font-size:0.85rem;padding:1.5rem;">
+                                No copies registered.
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -140,8 +204,6 @@
                 @endif
             </div>
             <div class="card-body">
-
-                {{-- Current file info --}}
                 @if($book->digitalBook)
                 <div style="display:flex;align-items:center;gap:0.875rem;padding:0.875rem 1rem;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:1.25rem;">
                     <div style="width:36px;height:36px;background:#fef2f2;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -153,15 +215,12 @@
                             {{ basename($book->digitalBook->file_path) }}
                         </p>
                     </div>
-                    <a href="{{ asset('storage/' . $book->digitalBook->file_path) }}" target="_blank"
-                        class="btn btn-sm btn-secondary" style="flex-shrink:0;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    <a href="{{ asset('storage/' . $book->digitalBook->file_path) }}" target="_blank" class="btn btn-sm btn-secondary" style="flex-shrink:0;">
                         Preview
                     </a>
                 </div>
                 @else
                 <div class="alert alert-warning" style="margin-bottom:1.25rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
                     No PDF uploaded yet. This book is not readable until a PDF is provided.
                 </div>
                 @endif
@@ -173,11 +232,10 @@
                     </label>
                     <input type="file" name="file_path" accept="application/pdf" class="form-control" />
                     <span class="form-hint">
-                        {{ $book->digitalBook ? 'Leave blank to keep the current PDF. ' : 'Required — upload a PDF file. ' }}
-                        Max file size: 50MB.
+                        {{ $book->digitalBook ? 'Leave blank to keep the current PDF.' : 'Required — upload a PDF file.' }}
+                        Max 50MB.
                     </span>
                 </div>
-
             </div>
         </div>
         @endif

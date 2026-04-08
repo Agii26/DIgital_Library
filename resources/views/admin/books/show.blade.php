@@ -41,19 +41,12 @@
 
             <!-- Info -->
             <div style="flex:1;min-width:0;">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1.25rem;">
-                    <div>
-                        <h2 style="font-family:var(--font-serif);font-size:1.5rem;font-weight:700;color:var(--text-head);margin:0 0 0.25rem;">{{ $book->title }}</h2>
-                        <p style="color:var(--text-muted);font-size:0.875rem;margin:0;">by {{ $book->author }}</p>
-                    </div>
+                <div style="margin-bottom:1.25rem;">
+                    <h2 style="font-family:var(--font-serif);font-size:1.5rem;font-weight:700;color:var(--text-head);margin:0 0 0.25rem;">{{ $book->title }}</h2>
+                    <p style="color:var(--text-muted);font-size:0.875rem;margin:0;">by {{ $book->author }}</p>
                 </div>
 
                 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;">
-
-                    <div>
-                        <p style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.35rem;">Accession No.</p>
-                        <p style="font-family:monospace;font-size:0.875rem;font-weight:600;color:var(--text-head);margin:0;">{{ $book->accession_no }}</p>
-                    </div>
 
                     <div>
                         <p style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.35rem;">Category</p>
@@ -67,31 +60,25 @@
 
                     <div>
                         <p style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.35rem;">Type</p>
-                        @if($book->type === 'physical')
-                            <span class="badge badge-gold">{{ ucfirst($book->type) }}</span>
-                        @else
-                            <span class="badge badge-blue">{{ ucfirst($book->type) }}</span>
-                        @endif
+                        <span class="badge {{ $book->type === 'physical' ? 'badge-gold' : 'badge-blue' }}">{{ ucfirst($book->type) }}</span>
+                    </div>
+
+                    <div>
+                        <p style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.35rem;">Total Copies</p>
+                        <p style="font-size:0.875rem;font-weight:600;color:var(--text-head);margin:0;">{{ $book->quantity }}</p>
+                    </div>
+
+                    <div>
+                        <p style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.35rem;">Available</p>
+                        <p style="font-size:0.875rem;font-weight:600;color:var(--text-head);margin:0;">{{ $book->available_copies }}</p>
                     </div>
 
                     <div>
                         <p style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.35rem;">Status</p>
-                        @if($book->status === 'available')
-                            <span class="badge badge-success">Available</span>
-                        @elseif($book->status === 'borrowed')
-                            <span class="badge badge-warning">Borrowed</span>
-                        @elseif($book->status === 'reserved')
-                            <span class="badge badge-blue">Reserved</span>
-                        @elseif($book->status === 'damaged')
-                            <span class="badge badge-danger">Damaged</span>
-                        @else
-                            <span class="badge badge-muted">{{ ucfirst($book->status) }}</span>
-                        @endif
-                    </div>
-
-                    <div>
-                        <p style="font-size:0.7rem;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 0.35rem;">Damage Count</p>
-                        <p style="font-size:0.875rem;font-weight:600;color:var(--text-head);margin:0;">{{ $book->damage_count ?? 0 }}x</p>
+                        @php $status = $book->status; @endphp
+                        <span class="badge {{ $status === 'available' ? 'badge-success' : 'badge-warning' }}">
+                            {{ ucfirst($status) }}
+                        </span>
                     </div>
 
                 </div>
@@ -108,8 +95,54 @@
     </div>
 </div>
 
-<!-- Borrowing History -->
+<!-- Copies -->
 @if($book->type === 'physical')
+<div class="card" style="margin-bottom:1.25rem;">
+    <div class="card-header">
+        <span class="card-title">Copies</span>
+        <span class="badge badge-muted">{{ $book->copies->count() }} total</span>
+    </div>
+    <div class="table-wrapper" style="border:none;box-shadow:none;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Accession No.</th>
+                    <th>Status</th>
+                    <th>Added</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($book->copies as $copy)
+                <tr>
+                    <td>
+                        <code style="font-size:0.75rem;color:var(--text-muted);background:var(--surface-2);padding:0.2rem 0.5rem;border-radius:var(--radius);border:1px solid var(--border);">
+                            {{ $copy->accession_no }}
+                        </code>
+                    </td>
+                    <td>
+                        <span class="badge
+                            {{ $copy->status === 'available' ? 'badge-success' :
+                               ($copy->status === 'borrowed'  ? 'badge-warning' :
+                               ($copy->status === 'reserved'  ? 'badge-blue' :
+                               ($copy->status === 'damaged'   ? 'badge-danger' : 'badge-muted'))) }}">
+                            {{ ucfirst($copy->status) }}
+                        </span>
+                    </td>
+                    <td style="font-size:0.8rem;color:var(--text-muted);">
+                        {{ $copy->created_at->format('M d, Y') }}
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="3" style="text-align:center;color:var(--text-dim);padding:1.5rem;font-size:0.85rem;">No copies found.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Borrowing History — aggregated across all copies -->
 <div class="card">
     <div class="card-header">
         <span class="card-title">Borrowing History</span>
