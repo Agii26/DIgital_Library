@@ -800,7 +800,7 @@
             <div class="stat-item-label">Digital Books</div>
         </div>
         <div class="stat-item">
-            <div class="stat-item-value">{{ \App\Models\Book::where('status', 'available')->count() }}</div>
+            <div class="stat-item-value">{{ \App\Models\BookCopy::where('status', 'available')->count() }}</div>
             <div class="stat-item-label">Available Now</div>
         </div>
     </div>
@@ -848,7 +848,7 @@
     <div class="books-grid">
         @php
             $featuredBooks = \App\Models\Book::with('digitalBook')
-                ->where('status', 'available')
+                ->whereHas('copies', fn($q) => $q->where('status', 'available'))
                 ->latest()->take(8)->get();
         @endphp
         @forelse($featuredBooks as $book)

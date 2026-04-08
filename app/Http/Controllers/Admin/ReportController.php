@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Book;
+use App\Models\BookCopy;
 use App\Models\PhysicalBorrow;
 use App\Models\Penalty;
 use App\Models\User;
@@ -18,12 +19,12 @@ class ReportController extends Controller
         $year  = $request->year ?? now()->year;
 
         // Overview stats
-        $totalBooks        = Book::count();
-        $totalUsers        = User::whereIn('role', ['faculty', 'student'])->count();
-        $totalBorrows      = PhysicalBorrow::count();
-        $totalPenalties    = Penalty::sum('amount');
-        $totalUnpaid       = Penalty::where('is_paid', false)->sum('amount');
-        $totalCollected    = Penalty::where('is_paid', true)->sum('amount');
+        $totalBooks     = Book::count();
+        $totalUsers     = User::whereIn('role', ['faculty', 'student'])->count();
+        $totalBorrows   = PhysicalBorrow::count();
+        $totalPenalties = Penalty::sum('amount');
+        $totalUnpaid    = Penalty::where('is_paid', false)->sum('amount');
+        $totalCollected = Penalty::where('is_paid', true)->sum('amount');
 
         // Monthly borrows
         $monthlyBorrows = PhysicalBorrow::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
@@ -74,11 +75,20 @@ class ReportController extends Controller
             ->pluck('total', 'type')
             ->toArray();
 
-        // Books by status
-        $booksByStatus = Book::selectRaw('status, COUNT(*) as count')
+        // Books by status — now derived from book_copies
+        $copyStatuses = BookCopy::selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
+
+        // Map to the same $booksByStatus variable the view expects
+        $booksByStatus = [
+            'available' => $copyStatuses['available'] ?? 0,
+            'borrowed'  => $copyStatuses['borrowed']  ?? 0,
+            'reserved'  => $copyStatuses['reserved']  ?? 0,
+            'damaged'   => $copyStatuses['damaged']   ?? 0,
+            'lost'      => $copyStatuses['lost']      ?? 0,
+        ];
 
         return view('admin.reports.index', compact(
             'totalBooks', 'totalUsers', 'totalBorrows',
@@ -88,12 +98,12 @@ class ReportController extends Controller
             'month', 'year'
         ));
     }
+
     public function export(Request $request)
     {
-        $month = $request->month ?? now()->month;
-        $year  = $request->year ?? now()->year;
+        $year = $request->year ?? now()->year;
 
-        $borrows = PhysicalBorrow::with(['user', 'book'])
+        $borrows = PhysicalBorrow::with(['user', 'book.copies'])
             ->whereYear('created_at', $year)
             ->get();
 
@@ -101,28 +111,35 @@ class ReportController extends Controller
             ->whereYear('created_at', $year)
             ->get();
 
-        $attendance = \App\Models\AttendanceLog::with('user')
+        $attendance = AttendanceLog::with('user')
             ->whereYear('scanned_at', $year)
             ->get();
 
-        $filename = 'library_report_' . $year . '.xlsx';
-
+        $filename    = 'library_report_' . $year . '.xlsx';
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
 
         // ── Sheet 1: Borrows ──
         $sheet1 = $spreadsheet->getActiveSheet();
         $sheet1->setTitle('Borrows');
-        $sheet1->fromArray(['Borrower', 'Role', 'Book', 'Accession No.', 'Status', 'Reserved', 'Due Date', 'Returned', 'Condition'], null, 'A1');
+        $sheet1->fromArray(
+            ['Borrower', 'Role', 'Book', 'Copies (Accession Nos.)', 'Status', 'Reserved', 'Due Date', 'Returned', 'Condition'],
+            null, 'A1'
+        );
         $row = 2;
         foreach ($borrows as $borrow) {
+            // Collect all accession numbers for this book's copies
+            $accessionNos = $borrow->book
+                ? $borrow->book->copies->pluck('accession_no')->join(', ')
+                : '-';
+
             $sheet1->fromArray([
-                $borrow->user->name,
-                ucfirst($borrow->user->role),
-                $borrow->book->title,
-                $borrow->book->accession_no,
+                $borrow->user->name          ?? '-',
+                ucfirst($borrow->user->role  ?? '-'),
+                $borrow->book->title         ?? '-',
+                $accessionNos,
                 ucfirst($borrow->status),
                 $borrow->reserved_at?->format('M d, Y') ?? '-',
-                $borrow->due_date?->format('M d, Y') ?? '-',
+                $borrow->due_date?->format('M d, Y')    ?? '-',
                 $borrow->returned_at?->format('M d, Y') ?? '-',
                 $borrow->condition ? ucfirst($borrow->condition) : '-',
             ], null, 'A' . $row);
@@ -132,13 +149,16 @@ class ReportController extends Controller
         // ── Sheet 2: Penalties ──
         $sheet2 = $spreadsheet->createSheet();
         $sheet2->setTitle('Penalties');
-        $sheet2->fromArray(['User', 'Role', 'Book', 'Type', 'Amount', 'Status', 'Date'], null, 'A1');
+        $sheet2->fromArray(
+            ['User', 'Role', 'Book', 'Type', 'Amount', 'Status', 'Date'],
+            null, 'A1'
+        );
         $row = 2;
         foreach ($penalties as $penalty) {
             $sheet2->fromArray([
-                $penalty->user->name,
-                ucfirst($penalty->user->role),
-                $penalty->physicalBorrow->book->title ?? '-',
+                $penalty->user->name                        ?? '-',
+                ucfirst($penalty->user->role                ?? '-'),
+                $penalty->physicalBorrow->book->title       ?? '-',
                 ucfirst($penalty->type),
                 '₱' . number_format($penalty->amount, 2),
                 $penalty->is_paid ? 'Paid' : 'Unpaid',
@@ -150,22 +170,24 @@ class ReportController extends Controller
         // ── Sheet 3: Attendance ──
         $sheet3 = $spreadsheet->createSheet();
         $sheet3->setTitle('Attendance');
-        $sheet3->fromArray(['Name', 'ID No.', 'Role', 'Department', 'Type', 'Time'], null, 'A1');
+        $sheet3->fromArray(
+            ['Name', 'ID No.', 'Role', 'Department', 'Type', 'Time'],
+            null, 'A1'
+        );
         $row = 2;
         foreach ($attendance as $log) {
             $sheet3->fromArray([
                 $log->user->name,
-                $log->user->student_id ?? '-',
+                $log->user->student_id  ?? '-',
                 ucfirst($log->user->role),
-                $log->user->department ?? '-',
+                $log->user->department  ?? '-',
                 $log->type === 'time_in' ? 'Time In' : 'Time Out',
                 $log->scanned_at->format('M d, Y h:i A'),
             ], null, 'A' . $row);
             $row++;
         }
 
-        // Write file
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
         $tempFile = tempnam(sys_get_temp_dir(), 'report');
         $writer->save($tempFile);
 
