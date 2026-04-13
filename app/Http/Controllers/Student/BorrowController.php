@@ -25,7 +25,7 @@ class BorrowController extends Controller
     public function create()
     {
         $books = Book::where('type', 'physical')
-            ->where('status', 'available')
+            ->whereHas('copies', fn($q) => $q->where('status', 'available'))
             ->get();
 
         return view('student.borrows.create', compact('books'));
@@ -51,7 +51,7 @@ class BorrowController extends Controller
 
         // Check if book is available
         $book = Book::findOrFail($request->book_id);
-        if ($book->status !== 'available') {
+        if ($book->available_copies < 1) {
             return back()->withErrors(['book_id' => 'This book is no longer available.']);
         }
 
