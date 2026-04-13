@@ -13,7 +13,7 @@ class DigitalBookController extends Controller
     public function index()
     {
         $books = Book::where('type', 'digital')
-            ->where('status', 'available')
+            ->whereHas('copies', fn($q) => $q->where('status', 'available'))
             ->with('digitalBook')
             ->latest()
             ->paginate(12);
