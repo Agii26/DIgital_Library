@@ -41,11 +41,11 @@ class DashboardController extends Controller
             ->get();
 
         $availableBooks = Book::where('type', 'physical')
-            ->where('status', 'available')
+            ->whereHas('copies', fn($q) => $q->where('status', 'available'))
             ->count();
 
         $digitalBooks = Book::where('type', 'digital')
-            ->where('status', 'available')
+            ->whereHas('copies', fn($q) => $q->where('status', 'available'))
             ->count();
 
         return view('student.dashboard', compact(
