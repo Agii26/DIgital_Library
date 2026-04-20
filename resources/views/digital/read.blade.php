@@ -256,7 +256,8 @@ fetch("{{ route('digital.stream', $activeSession) }}", {
     // fallback if blob fails
     pdfFrame.src = "{{ route('digital.stream', $activeSession) }}#toolbar=0";
 });
-
+document.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('contextmenu', e => e.preventDefault(), true);
         function updateTimer() {
             if (remainingSeconds <= 0) {
                 clearInterval(interval);
