@@ -104,6 +104,7 @@
             flex: 1;
             display: flex;
             overflow: hidden;
+            position: relative; /* add this here */
         }
         #pdf-frame {
             width: 100%;
@@ -208,6 +209,15 @@
 
     {{-- ── PDF Viewer ── --}}
     <div class="reader-body">
+        <div id="pdf-overlay" style="
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    pointer-events: all;
+"></div>
         <iframe
             src="{{ asset('storage/' . $book->digitalBook->file_path) }}#toolbar=0"
             id="pdf-frame"
@@ -248,6 +258,19 @@
         const timerEl        = document.getElementById('timer');
         const modal          = document.getElementById('expired-modal');
         const pdfFrame       = document.getElementById('pdf-frame');
+
+        // Disable right-click on the entire page
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// Disable keyboard shortcuts for saving
+document.addEventListener('keydown', e => {
+    // Ctrl+S / Cmd+S (Save)
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') e.preventDefault();
+    // Ctrl+P / Cmd+P (Print)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') e.preventDefault();
+    // Ctrl+Shift+S (Save As in some browsers)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 's') e.preventDefault();
+});
 
         function updateTimer() {
             if (remainingSeconds <= 0) {
