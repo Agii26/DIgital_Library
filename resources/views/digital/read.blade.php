@@ -260,10 +260,9 @@
             try {
                 const iframeDoc = pdfFrame.contentDocument || pdfFrame.contentWindow.document;
                 if (iframeDoc) {
-                    const overlay = iframeDoc.createElement('div');
-                    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;';
-                    overlay.addEventListener('contextmenu', e => e.preventDefault());
-                    iframeDoc.body.appendChild(overlay);
+                    // Block right-click directly on the iframe's document — no overlay needed
+                    iframeDoc.addEventListener('contextmenu', e => e.preventDefault());
+                    iframeDoc.body.style.userSelect = 'none'; // also disable text selection/drag
                 }
             } catch (e) {
                 // Cross-origin PDFs won't allow contentDocument access — that's fine,
