@@ -65,16 +65,34 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="department">Department</label>
-                        <input type="text" id="department" name="department" value="{{ old('department') }}"
-                            class="form-control" placeholder="e.g. College of Engineering">
-                    </div>
+    <label class="form-label" for="department">Department</label>
+    <select id="department" name="department" class="form-control">
+        <option value="">Select grade level...</option>
+        <optgroup label="Elementary">
+            <option value="Grade 1" {{ old('department') === 'Grade 1' ? 'selected' : '' }}>Grade 1</option>
+            <option value="Grade 2" {{ old('department') === 'Grade 2' ? 'selected' : '' }}>Grade 2</option>
+            <option value="Grade 3" {{ old('department') === 'Grade 3' ? 'selected' : '' }}>Grade 3</option>
+            <option value="Grade 4" {{ old('department') === 'Grade 4' ? 'selected' : '' }}>Grade 4</option>
+            <option value="Grade 5" {{ old('department') === 'Grade 5' ? 'selected' : '' }}>Grade 5</option>
+            <option value="Grade 6" {{ old('department') === 'Grade 6' ? 'selected' : '' }}>Grade 6</option>
+        </optgroup>
+        <optgroup label="Junior High School">
+            <option value="Grade 7" {{ old('department') === 'Grade 7' ? 'selected' : '' }}>Grade 7</option>
+            <option value="Grade 8" {{ old('department') === 'Grade 8' ? 'selected' : '' }}>Grade 8</option>
+            <option value="Grade 9" {{ old('department') === 'Grade 9' ? 'selected' : '' }}>Grade 9</option>
+            <option value="Grade 10" {{ old('department') === 'Grade 10' ? 'selected' : '' }}>Grade 10</option>
+        </optgroup>
+        <optgroup label="Senior High School">
+            <option value="Grade 11" {{ old('department') === 'Grade 11' ? 'selected' : '' }}>Grade 11</option>
+            <option value="Grade 12" {{ old('department') === 'Grade 12' ? 'selected' : '' }}>Grade 12</option>
+        </optgroup>
+    </select>
+</div>
 
                     <div class="form-group">
                         <label class="form-label" for="rfid_tag">RFID Tag</label>
                         <input type="text" id="rfid_tag" name="rfid_tag" value="{{ old('rfid_tag') }}"
                             class="form-control" placeholder="e.g. A1B2C3D4">
-                        <p class="form-hint">Leave blank if no RFID card assigned yet.</p>
                     </div>
 
                 </div>
