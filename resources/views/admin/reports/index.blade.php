@@ -158,7 +158,7 @@
 </div>
 
 {{-- Most Borrowed + Most Active Borrowers --}}
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;">
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem;margin-bottom:1.5rem;">
 
     <div class="card">
         <div class="card-header">
@@ -226,6 +226,143 @@
     </div>
 
 </div>
+
+{{-- ============================================================ --}}
+{{-- DETAILED REPORT TABLE WITH VIEW FILTER TABS                  --}}
+{{-- ============================================================ --}}
+<div class="card" style="margin-bottom:1.5rem;">
+
+    {{-- Card Header --}}
+    <div class="card-header">
+        <h2 class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" style="margin-right:7px;vertical-align:middle;color:var(--gold);">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125h-1.5m2.625-1.5V5.625a1.125 1.125 0 00-1.125-1.125H4.5A1.125 1.125 0 003.375 5.625m18.75 0v1.5c0 .621-.504 1.125-1.125 1.125M9 8.625h6m-6 3h6m-6 3h4.5" />
+            </svg>
+            Detailed Report Table
+        </h2>
+
+        {{-- Search --}}
+        <div style="margin-left:auto;position:relative;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="position:absolute;left:0.6rem;top:50%;transform:translateY(-50%);color:var(--text-muted);">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0016.803 15.803z" />
+            </svg>
+            <input type="text" id="drillSearch" class="form-control" placeholder="Search name, book, accession…" style="font-size:0.8rem;padding:0.35rem 0.6rem 0.35rem 2rem;width:220px;" />
+        </div>
+    </div>
+
+    {{-- Filter Tabs --}}
+    <div style="padding:0 1.25rem;border-bottom:1px solid var(--border,#e5e7eb);display:flex;gap:0;overflow-x:auto;">
+        <button class="drill-tab active" data-view="books">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+            </svg>
+            Total Books
+            <span class="drill-tab-count" id="countBooks">{{ count($reportBooks ?? []) }}</span>
+        </button>
+        <button class="drill-tab" data-view="users">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            </svg>
+            Total Users
+            <span class="drill-tab-count" id="countUsers">{{ count($reportUsers ?? []) }}</span>
+        </button>
+        <button class="drill-tab" data-view="borrows">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6A2.25 2.25 0 016 3.75h1.5m9 0h-9" />
+            </svg>
+            Total Borrows
+            <span class="drill-tab-count" id="countBorrows">{{ count($reportBorrows ?? []) }}</span>
+        </button>
+        <button class="drill-tab" data-view="penalties">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            Total Penalties
+            <span class="drill-tab-count" id="countPenalties">{{ count($reportPenalties ?? []) }}</span>
+        </button>
+        <button class="drill-tab" data-view="unpaid">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75" />
+            </svg>
+            Unpaid
+            <span class="drill-tab-count drill-tab-count-red" id="countUnpaid">{{ count($reportUnpaid ?? []) }}</span>
+        </button>
+        <button class="drill-tab" data-view="collected">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="margin-right:5px;vertical-align:middle;">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+            </svg>
+            Collected
+            <span class="drill-tab-count drill-tab-count-green" id="countCollected">{{ count($reportCollected ?? []) }}</span>
+        </button>
+    </div>
+
+    {{-- Table Container --}}
+    <div style="overflow-x:auto;">
+        <table class="table" id="drillTable">
+            <thead id="drillThead"></thead>
+            <tbody id="drillTbody"></tbody>
+        </table>
+
+        {{-- Empty state --}}
+        <div id="drillEmpty" style="display:none;padding:3rem 0;">
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                </div>
+                <div class="empty-state-title">No records found</div>
+                <div class="empty-state-text">Try a different search or check back later.</div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Footer count --}}
+    <div style="padding:0.6rem 1.25rem;border-top:1px solid var(--border,#e5e7eb);font-size:0.78rem;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;">
+        <span id="drillFooterText">Showing all records</span>
+        <span id="drillFooterAmount" style="font-weight:600;font-size:0.85rem;"></span>
+    </div>
+</div>
+
+<style>
+.drill-tab {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.7rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted, #64748b);
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    gap: 0;
+}
+.drill-tab:hover { color: var(--text-head, #1a3a6b); }
+.drill-tab.active {
+    color: var(--navy, #1a3a6b);
+    border-bottom-color: var(--navy, #1a3a6b);
+    font-weight: 600;
+}
+.drill-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 6px;
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: #e2e8f0;
+    color: #475569;
+}
+.drill-tab.active .drill-tab-count { background: #dbeafe; color: #1d4ed8; }
+.drill-tab-count-red  { background: #fee2e2 !important; color: #b91c1c !important; }
+.drill-tab-count-green { background: #dcfce7 !important; color: #15803d !important; }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -340,6 +477,234 @@
             cutout: '62%'
         }
     });
+
+    // ============================================================
+    // DRILL-DOWN REPORT TABLE — tab-based view switcher
+    // ============================================================
+
+    /**
+     * Pass these variables from your controller:
+     *
+     * $reportBooks     — collection of Book records
+     *   Fields: title, accession_no, author, category, status, created_at
+     *
+     * $reportUsers     — collection of User records
+     *   Fields: name, role, department, email, created_at
+     *
+     * $reportBorrows   — collection of Borrow records (with user & book eager-loaded)
+     *   Fields: user.name, book.title, book.accession_no, borrowed_at, due_date, returned_at, status
+     *
+     * $reportPenalties — collection of Penalty records (with user & borrow.book eager-loaded)
+     *   Fields: user.name, borrow.book.title, amount, status, created_at
+     *
+     * $reportUnpaid    — same as penalties but filtered where status = 'unpaid'
+     *
+     * $reportCollected — same as penalties but filtered where status = 'paid'
+     */
+
+    const drillDatasets = {
+        books: @json($reportBooks ?? []),
+        users: @json($reportUsers ?? []),
+        borrows: @json($reportBorrows ?? []),
+        penalties: @json($reportPenalties ?? []),
+        unpaid: @json($reportUnpaid ?? []),
+        collected: @json($reportCollected ?? []),
+    };
+
+    const fmt    = (n) => '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' }) : '—';
+
+    // Table schema per view: { headers[], rowFn(row) => html string, amountKey? }
+    const drillSchemas = {
+        books: {
+            headers: ['Accession No.', 'Title', 'Author', 'Category', 'Status', 'Date Added'],
+            searchFields: ['accession_no', 'title', 'author', 'category'],
+            rowFn: (r) => `
+                <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${r.accession_no ?? '—'}</td>
+                <td style="font-weight:500;">${r.title ?? '—'}</td>
+                <td>${r.author ?? '—'}</td>
+                <td>${r.category ?? '—'}</td>
+                <td><span class="badge ${statusBadge(r.status)}">${r.status ?? '—'}</span></td>
+                <td style="white-space:nowrap;color:var(--text-muted);font-size:0.8rem;">${fmtDate(r.created_at)}</td>
+            `,
+        },
+        users: {
+            headers: ['Name', 'Role', 'Department', 'Email', 'Joined'],
+            searchFields: ['name', 'role', 'department', 'email'],
+            rowFn: (r) => `
+                <td>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="avatar avatar-sm">${(r.name ?? '?')[0].toUpperCase()}</div>
+                        <span style="font-weight:500;">${r.name ?? '—'}</span>
+                    </div>
+                </td>
+                <td><span class="badge badge-blue">${r.role ? r.role.charAt(0).toUpperCase() + r.role.slice(1) : '—'}</span></td>
+                <td>${r.department ?? '—'}</td>
+                <td style="font-size:0.8rem;color:var(--text-muted);">${r.email ?? '—'}</td>
+                <td style="white-space:nowrap;color:var(--text-muted);font-size:0.8rem;">${fmtDate(r.created_at)}</td>
+            `,
+        },
+        borrows: {
+            headers: ['Borrower', 'Book Title', 'Accession No.', 'Borrowed', 'Due Date', 'Returned', 'Status'],
+            searchFields: ['user.name', 'book.title', 'book.accession_no'],
+            rowFn: (r) => `
+                <td>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="avatar avatar-sm">${((r.user?.name ?? r.borrower_name ?? '?')[0]).toUpperCase()}</div>
+                        <span style="font-weight:500;">${r.user?.name ?? r.borrower_name ?? '—'}</span>
+                    </div>
+                </td>
+                <td style="font-weight:500;">${r.book?.title ?? r.book_title ?? '—'}</td>
+                <td style="font-size:0.8rem;color:var(--text-muted);">${r.book?.accession_no ?? r.accession_no ?? '—'}</td>
+                <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.borrowed_at ?? r.created_at)}</td>
+                <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.due_date)}</td>
+                <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${r.returned_at ? fmtDate(r.returned_at) : '<span style="color:#d97706;">Pending</span>'}</td>
+                <td><span class="badge ${statusBadge(r.status)}">${r.status ?? '—'}</span></td>
+            `,
+        },
+        penalties: {
+            headers: ['User', 'Book', 'Amount', 'Status', 'Date'],
+            searchFields: ['user.name', 'borrow.book.title'],
+            amountKey: 'amount',
+            rowFn: (r) => `
+                <td>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="avatar avatar-sm">${((r.user?.name ?? r.user_name ?? '?')[0]).toUpperCase()}</div>
+                        <span style="font-weight:500;">${r.user?.name ?? r.user_name ?? '—'}</span>
+                    </div>
+                </td>
+                <td style="font-weight:500;">${r.borrow?.book?.title ?? r.book_title ?? '—'}</td>
+                <td style="text-align:right;font-weight:600;">${fmt(r.amount ?? 0)}</td>
+                <td><span class="badge ${r.status === 'paid' ? 'badge-success' : 'badge-danger'}">${r.status ?? '—'}</span></td>
+                <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.created_at)}</td>
+            `,
+        },
+        unpaid: {
+            headers: ['User', 'Book', 'Amount Owed', 'Due Date', 'Days Overdue'],
+            searchFields: ['user.name', 'borrow.book.title'],
+            amountKey: 'amount',
+            rowFn: (r) => {
+                const due  = r.borrow?.due_date ?? r.due_date;
+                const days = due ? Math.max(0, Math.floor((Date.now() - new Date(due)) / 86400000)) : null;
+                return `
+                    <td>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <div class="avatar avatar-sm">${((r.user?.name ?? r.user_name ?? '?')[0]).toUpperCase()}</div>
+                            <div>
+                                <div style="font-weight:500;">${r.user?.name ?? r.user_name ?? '—'}</div>
+                                <div style="font-size:0.75rem;color:var(--text-muted);">${r.user?.department ?? r.department ?? ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="font-weight:500;">${r.borrow?.book?.title ?? r.book_title ?? '—'}</td>
+                    <td style="text-align:right;font-weight:700;color:#b91c1c;">${fmt(r.amount ?? 0)}</td>
+                    <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(due)}</td>
+                    <td style="text-align:center;">
+                        ${days !== null ? `<span class="badge ${days > 30 ? 'badge-danger' : days > 7 ? 'badge-warning' : 'badge-blue'}">${days}d</span>` : '—'}
+                    </td>
+                `;
+            },
+        },
+        collected: {
+            headers: ['User', 'Book', 'Amount Paid', 'Payment Date'],
+            searchFields: ['user.name', 'borrow.book.title'],
+            amountKey: 'amount',
+            rowFn: (r) => `
+                <td>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="avatar avatar-sm">${((r.user?.name ?? r.user_name ?? '?')[0]).toUpperCase()}</div>
+                        <div>
+                            <div style="font-weight:500;">${r.user?.name ?? r.user_name ?? '—'}</div>
+                            <div style="font-size:0.75rem;color:var(--text-muted);">${r.user?.department ?? r.department ?? ''}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="font-weight:500;">${r.borrow?.book?.title ?? r.book_title ?? '—'}</td>
+                <td style="text-align:right;font-weight:700;color:#15803d;">${fmt(r.amount ?? 0)}</td>
+                <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.updated_at ?? r.created_at)}</td>
+            `,
+        },
+    };
+
+    function statusBadge(status) {
+        const map = {
+            available: 'badge-success', returned: 'badge-success', paid: 'badge-success',
+            borrowed: 'badge-blue', active: 'badge-blue',
+            overdue: 'badge-danger', unpaid: 'badge-danger', lost: 'badge-danger',
+            reserved: 'badge-warning', pending: 'badge-warning',
+        };
+        return map[(status ?? '').toLowerCase()] ?? 'badge-blue';
+    }
+
+    function getNestedVal(obj, path) {
+        return path.split('.').reduce((o, k) => (o && o[k] != null ? o[k] : ''), obj);
+    }
+
+    let currentView   = 'books';
+    let currentSearch = '';
+
+    function renderDrillTable() {
+        const schema  = drillSchemas[currentView];
+        const allData = drillDatasets[currentView] ?? [];
+        const search  = currentSearch.toLowerCase().trim();
+
+        const data = search
+            ? allData.filter(r => schema.searchFields.some(f => String(getNestedVal(r, f)).toLowerCase().includes(search)))
+            : allData;
+
+        // Header
+        document.getElementById('drillThead').innerHTML =
+            '<tr>' + schema.headers.map(h => `<th style="white-space:nowrap;">${h}</th>`).join('') + '</tr>';
+
+        const tbody    = document.getElementById('drillTbody');
+        const empty    = document.getElementById('drillEmpty');
+        const footer   = document.getElementById('drillFooterText');
+        const footAmt  = document.getElementById('drillFooterAmount');
+
+        tbody.innerHTML = '';
+
+        if (!data.length) {
+            empty.style.display = 'block';
+            footer.textContent  = 'No records found';
+            footAmt.textContent = '';
+            return;
+        }
+
+        empty.style.display = 'none';
+        let totalAmount = 0;
+
+        data.forEach(r => {
+            if (schema.amountKey) totalAmount += Number(r[schema.amountKey] ?? 0);
+            const tr = document.createElement('tr');
+            tr.innerHTML = schema.rowFn(r);
+            tbody.appendChild(tr);
+        });
+
+        footer.textContent = `Showing ${data.length} of ${allData.length} record${allData.length !== 1 ? 's' : ''}`;
+        footAmt.textContent = schema.amountKey ? `Total: ${fmt(totalAmount)}` : '';
+        footAmt.style.color = currentView === 'unpaid' ? '#b91c1c' : currentView === 'collected' ? '#15803d' : '';
+    }
+
+    // Tab click
+    document.querySelectorAll('.drill-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.drill-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentView   = btn.dataset.view;
+            currentSearch = '';
+            document.getElementById('drillSearch').value = '';
+            renderDrillTable();
+        });
+    });
+
+    // Search
+    document.getElementById('drillSearch').addEventListener('input', e => {
+        currentSearch = e.target.value;
+        renderDrillTable();
+    });
+
+    // Initial render
+    renderDrillTable();
 </script>
 
 @endsection
