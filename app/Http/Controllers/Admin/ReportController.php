@@ -18,7 +18,7 @@ class ReportController extends Controller
         $month = $request->month ?? now()->month;
         $year  = $request->year ?? now()->year;
 
-        // Overview stats
+        // ── Overview stats ──
         $totalBooks     = Book::count();
         $totalUsers     = User::whereIn('role', ['faculty', 'student'])->count();
         $totalBorrows   = PhysicalBorrow::count();
@@ -26,7 +26,7 @@ class ReportController extends Controller
         $totalUnpaid    = Penalty::where('is_paid', false)->sum('amount');
         $totalCollected = Penalty::where('is_paid', true)->sum('amount');
 
-        // Monthly borrows
+        // ── Monthly borrows ──
         $monthlyBorrows = PhysicalBorrow::selectRaw('MONTH(created_at) as month, COUNT(*) as count')
             ->whereYear('created_at', $year)
             ->groupBy('month')
@@ -39,7 +39,7 @@ class ReportController extends Controller
             $monthlyBorrowsData[] = $monthlyBorrows[$i] ?? 0;
         }
 
-        // Most borrowed books
+        // ── Most borrowed books ──
         $mostBorrowed = PhysicalBorrow::selectRaw('book_id, COUNT(*) as borrow_count')
             ->with('book')
             ->groupBy('book_id')
@@ -47,7 +47,7 @@ class ReportController extends Controller
             ->limit(5)
             ->get();
 
-        // Most active borrowers
+        // ── Most active borrowers ──
         $mostActive = PhysicalBorrow::selectRaw('user_id, COUNT(*) as borrow_count')
             ->with('user')
             ->groupBy('user_id')
@@ -55,7 +55,7 @@ class ReportController extends Controller
             ->limit(5)
             ->get();
 
-        // Monthly attendance
+        // ── Monthly attendance ──
         $monthlyAttendance = AttendanceLog::selectRaw('MONTH(scanned_at) as month, COUNT(*) as count')
             ->whereYear('scanned_at', $year)
             ->where('type', 'time_in')
@@ -69,19 +69,18 @@ class ReportController extends Controller
             $monthlyAttendanceData[] = $monthlyAttendance[$i] ?? 0;
         }
 
-        // Penalty breakdown
+        // ── Penalty breakdown ──
         $penaltyBreakdown = Penalty::selectRaw('type, SUM(amount) as total')
             ->groupBy('type')
             ->pluck('total', 'type')
             ->toArray();
 
-        // Books by status — now derived from book_copies
+        // ── Books by status (from book_copies) ──
         $copyStatuses = BookCopy::selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
 
-        // Map to the same $booksByStatus variable the view expects
         $booksByStatus = [
             'available' => $copyStatuses['available'] ?? 0,
             'borrowed'  => $copyStatuses['borrowed']  ?? 0,
@@ -90,12 +89,42 @@ class ReportController extends Controller
             'lost'      => $copyStatuses['lost']      ?? 0,
         ];
 
+        // ── Detailed report table data ──
+        $reportBooks = Book::orderBy('title')->get();
+
+        $reportUsers = User::whereIn('role', ['faculty', 'student'])
+            ->orderBy('name')
+            ->get();
+
+        $reportBorrows = PhysicalBorrow::with(['user', 'book'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        // physicalBorrow.book is the real relationship;
+        // we also load 'borrow.book' via the alias defined in Penalty model
+        $reportPenalties = Penalty::with(['user', 'physicalBorrow.book'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $reportUnpaid = Penalty::with(['user', 'physicalBorrow.book'])
+            ->where('is_paid', false)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $reportCollected = Penalty::with(['user', 'physicalBorrow.book'])
+            ->where('is_paid', true)
+            ->orderByDesc('created_at')
+            ->get();
+
         return view('admin.reports.index', compact(
             'totalBooks', 'totalUsers', 'totalBorrows',
             'totalPenalties', 'totalUnpaid', 'totalCollected',
             'monthlyBorrowsData', 'mostBorrowed', 'mostActive',
             'monthlyAttendanceData', 'penaltyBreakdown', 'booksByStatus',
-            'month', 'year'
+            'month', 'year',
+            // drill-down table
+            'reportBooks', 'reportUsers', 'reportBorrows',
+            'reportPenalties', 'reportUnpaid', 'reportCollected'
         ));
     }
 
@@ -127,7 +156,6 @@ class ReportController extends Controller
         );
         $row = 2;
         foreach ($borrows as $borrow) {
-            // Collect all accession numbers for this book's copies
             $accessionNos = $borrow->book
                 ? $borrow->book->copies->pluck('accession_no')->join(', ')
                 : '-';
@@ -156,9 +184,9 @@ class ReportController extends Controller
         $row = 2;
         foreach ($penalties as $penalty) {
             $sheet2->fromArray([
-                $penalty->user->name                        ?? '-',
-                ucfirst($penalty->user->role                ?? '-'),
-                $penalty->physicalBorrow->book->title       ?? '-',
+                $penalty->user->name                  ?? '-',
+                ucfirst($penalty->user->role          ?? '-'),
+                $penalty->physicalBorrow->book->title ?? '-',
                 ucfirst($penalty->type),
                 '₱' . number_format($penalty->amount, 2),
                 $penalty->is_paid ? 'Paid' : 'Unpaid',
@@ -178,9 +206,9 @@ class ReportController extends Controller
         foreach ($attendance as $log) {
             $sheet3->fromArray([
                 $log->user->name,
-                $log->user->student_id  ?? '-',
+                $log->user->student_id ?? '-',
                 ucfirst($log->user->role),
-                $log->user->department  ?? '-',
+                $log->user->department ?? '-',
                 $log->type === 'time_in' ? 'Time In' : 'Time Out',
                 $log->scanned_at->format('M d, Y h:i A'),
             ], null, 'A' . $row);

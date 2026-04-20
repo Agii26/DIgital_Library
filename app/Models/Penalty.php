@@ -24,4 +24,9 @@ class Penalty extends Model
     {
         return $this->belongsTo(PhysicalBorrow::class);
     }
+    // alias so the report JS can access r.borrow.book.title
+public function borrow()
+{
+    return $this->belongsTo(PhysicalBorrow::class, 'physical_borrow_id');
+}
 }
