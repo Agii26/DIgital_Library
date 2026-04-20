@@ -99,13 +99,7 @@
         #timer.warn  { color: var(--gold-light, #d4a93a); }
         #timer.urgent { color: #f87171; }
 
-        /* ── PDF Frame ── */
-        .reader-body {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-            position: relative; /* add this here */
-        }
+        
         #pdf-frame {
             width: 100%;
             border: none;
@@ -209,15 +203,6 @@
 
     {{-- ── PDF Viewer ── --}}
     <div class="reader-body">
-        <div id="pdf-overlay" style="
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 5;
-    pointer-events: all;
-"></div>
         <iframe
             src="{{ asset('storage/' . $book->digitalBook->file_path) }}#toolbar=0"
             id="pdf-frame"
@@ -261,6 +246,7 @@
 
         // Disable right-click on the entire page
 document.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('contextmenu', e => e.preventDefault(), true); // capture phase
 
 // Disable keyboard shortcuts for saving
 document.addEventListener('keydown', e => {
