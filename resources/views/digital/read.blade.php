@@ -203,12 +203,11 @@
 
     {{-- ── PDF Viewer ── --}}
     <div class="reader-body">
-        <iframe
-            src="{{ route('digital.stream', $activeSession) }}#toolbar=0"
-            id="pdf-frame"
-            style="height:calc(100vh - 60px);"
-        ></iframe>
-    </div>
+    <iframe
+        id="pdf-frame"
+        style="height:calc(100vh - 60px);"
+    ></iframe>
+</div>
 
     {{-- ── Session Expired Modal ── --}}
     <div id="expired-modal" class="ra-modal-backdrop">
@@ -244,18 +243,18 @@
         const modal          = document.getElementById('expired-modal');
         const pdfFrame       = document.getElementById('pdf-frame');
 
-        // Disable right-click on the entire page
-document.addEventListener('contextmenu', e => e.preventDefault());
-window.addEventListener('contextmenu', e => e.preventDefault(), true); // capture phase
-
-// Disable keyboard shortcuts for saving
-document.addEventListener('keydown', e => {
-    // Ctrl+S / Cmd+S (Save)
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') e.preventDefault();
-    // Ctrl+P / Cmd+P (Print)
-    if ((e.ctrlKey || e.metaKey) && e.key === 'p') e.preventDefault();
-    // Ctrl+Shift+S (Save As in some browsers)
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 's') e.preventDefault();
+        // Load PDF as blob to prevent Save As
+fetch("{{ route('digital.stream', $activeSession) }}", {
+    credentials: 'same-origin'
+})
+.then(res => res.blob())
+.then(blob => {
+    const url = URL.createObjectURL(blob);
+    pdfFrame.src = url + '#toolbar=0';
+})
+.catch(() => {
+    // fallback if blob fails
+    pdfFrame.src = "{{ route('digital.stream', $activeSession) }}#toolbar=0";
 });
 
         function updateTimer() {
