@@ -96,7 +96,7 @@ class ReportController extends Controller
             ->orderBy('name')
             ->get();
 
-        $reportBorrows = PhysicalBorrow::with(['user', 'book'])
+        $reportBorrows = PhysicalBorrow::with(['user', 'book.copies'])
             ->orderByDesc('created_at')
             ->get();
 

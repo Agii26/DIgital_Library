@@ -546,42 +546,45 @@
         },
         borrows: {
             headers: ['Borrower', 'Book Title', 'Accession No.', 'Borrowed', 'Due Date', 'Returned', 'Status'],
-            searchFields: ['user.name', 'book.title', 'book.accession_no'],
-            rowFn: (r) => `
-                <td>
-                    <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <div class="avatar avatar-sm">${((r.user?.name ?? r.borrower_name ?? '?')[0]).toUpperCase()}</div>
-                        <span style="font-weight:500;">${r.user?.name ?? r.borrower_name ?? '—'}</span>
-                    </div>
-                </td>
-                <td style="font-weight:500;">${r.book?.title ?? r.book_title ?? '—'}</td>
-                <td style="font-size:0.8rem;color:var(--text-muted);">${r.book?.accession_no ?? r.accession_no ?? '—'}</td>
-                <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.borrowed_at ?? r.created_at)}</td>
-                <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.due_date)}</td>
-                <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${r.returned_at ? fmtDate(r.returned_at) : '<span style="color:#d97706;">Pending</span>'}</td>
-                <td><span class="badge ${statusBadge(r.status)}">${r.status ?? '—'}</span></td>
-            `,
+            searchFields: ['user.name', 'book.title'],
+            rowFn: (r) => {
+                const accessions = r.book?.copies?.map(c => c.accession_no).join(', ') ?? '—';
+                return `
+                    <td>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <div class="avatar avatar-sm">${((r.user?.name ?? '?')[0]).toUpperCase()}</div>
+                            <span style="font-weight:500;">${r.user?.name ?? '—'}</span>
+                        </div>
+                    </td>
+                    <td style="font-weight:500;">${r.book?.title ?? '—'}</td>
+                    <td style="font-size:0.8rem;color:var(--text-muted);">${accessions}</td>
+                    <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.borrowed_at ?? r.created_at)}</td>
+                    <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.due_date)}</td>
+                    <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${r.returned_at ? fmtDate(r.returned_at) : '<span style="color:#d97706;">Pending</span>'}</td>
+                    <td><span class="badge ${statusBadge(r.status)}">${r.status ?? '—'}</span></td>
+                `;
+            },
         },
         penalties: {
             headers: ['User', 'Book', 'Amount', 'Status', 'Date'],
-            searchFields: ['user.name', 'borrow.book.title'],
+            searchFields: ['user.name', 'physical_borrow.book.title'],
             amountKey: 'amount',
             rowFn: (r) => `
                 <td>
                     <div style="display:flex;align-items:center;gap:0.5rem;">
-                        <div class="avatar avatar-sm">${((r.user?.name ?? r.user_name ?? '?')[0]).toUpperCase()}</div>
-                        <span style="font-weight:500;">${r.user?.name ?? r.user_name ?? '—'}</span>
+                        <div class="avatar avatar-sm">${((r.user?.name ?? '?')[0]).toUpperCase()}</div>
+                        <span style="font-weight:500;">${r.user?.name ?? '—'}</span>
                     </div>
                 </td>
-                <td style="font-weight:500;">${r.borrow?.book?.title ?? r.book_title ?? '—'}</td>
+                <td style="font-weight:500;">${r.physical_borrow?.book?.title ?? '—'}</td>
                 <td style="text-align:right;font-weight:600;">${fmt(r.amount ?? 0)}</td>
-                <td><span class="badge ${r.status === 'paid' ? 'badge-success' : 'badge-danger'}">${r.status ?? '—'}</span></td>
+                <td><span class="badge ${r.is_paid ? 'badge-success' : 'badge-danger'}">${r.is_paid ? 'Paid' : 'Unpaid'}</span></td>
                 <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.created_at)}</td>
             `,
         },
         unpaid: {
             headers: ['User', 'Book', 'Amount Owed', 'Due Date', 'Days Overdue'],
-            searchFields: ['user.name', 'borrow.book.title'],
+            searchFields: ['user.name', 'physical_borrow.book.title'],
             amountKey: 'amount',
             rowFn: (r) => {
                 const due  = r.borrow?.due_date ?? r.due_date;
@@ -607,7 +610,7 @@
         },
         collected: {
             headers: ['User', 'Book', 'Amount Paid', 'Payment Date'],
-            searchFields: ['user.name', 'borrow.book.title'],
+            searchFields: ['user.name', 'physical_borrow.book.title'],
             amountKey: 'amount',
             rowFn: (r) => `
                 <td>
