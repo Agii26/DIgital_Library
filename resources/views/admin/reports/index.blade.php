@@ -587,7 +587,7 @@
             searchFields: ['user.name', 'physical_borrow.book.title'],
             amountKey: 'amount',
             rowFn: (r) => {
-                const due  = r.borrow?.due_date ?? r.due_date;
+                const due  = r.physical_borrow?.due_date ?? r.due_date;
                 const days = due ? Math.max(0, Math.floor((Date.now() - new Date(due)) / 86400000)) : null;
                 return `
                     <td>
@@ -599,7 +599,7 @@
                             </div>
                         </div>
                     </td>
-                    <td style="font-weight:500;">${r.borrow?.book?.title ?? r.book_title ?? '—'}</td>
+                    <td style="font-weight:500;">${r.physical_borrow?.book?.title ?? '—'}</td>
                     <td style="text-align:right;font-weight:700;color:#b91c1c;">${fmt(r.amount ?? 0)}</td>
                     <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(due)}</td>
                     <td style="text-align:center;">
@@ -622,7 +622,7 @@
                         </div>
                     </div>
                 </td>
-                <td style="font-weight:500;">${r.borrow?.book?.title ?? r.book_title ?? '—'}</td>
+                <td style="font-weight:500;">${r.physical_borrow?.book?.title ?? '—'}</td>
                 <td style="text-align:right;font-weight:700;color:#15803d;">${fmt(r.amount ?? 0)}</td>
                 <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-muted);">${fmtDate(r.updated_at ?? r.created_at)}</td>
             `,
