@@ -237,59 +237,97 @@
     </div>
 
     <script>
-        let remainingSeconds = {{ $remainingSeconds }};
-        const sessionId      = {{ $activeSession->id }};
-        const timerEl        = document.getElementById('timer');
-        const modal          = document.getElementById('expired-modal');
-        const pdfFrame       = document.getElementById('pdf-frame');
+    let remainingSeconds = {{ $remainingSeconds }};
+    const sessionId      = {{ $activeSession->id }};
+    const timerEl        = document.getElementById('timer');
+    const modal          = document.getElementById('expired-modal');
+    const pdfFrame       = document.getElementById('pdf-frame');
 
-        // Load PDF as blob to prevent Save As
-fetch("{{ route('digital.stream', $activeSession) }}", {
-    credentials: 'same-origin'
-})
-.then(res => res.blob())
-.then(blob => {
-    const url = URL.createObjectURL(blob);
-    pdfFrame.src = url + '#toolbar=0';
-})
-.catch(() => {
-    // fallback if blob fails
-    pdfFrame.src = "{{ route('digital.stream', $activeSession) }}#toolbar=0";
-});
-document.addEventListener('contextmenu', e => e.preventDefault());
-window.addEventListener('contextmenu', e => e.preventDefault(), true);
-        function updateTimer() {
-            if (remainingSeconds <= 0) {
-                clearInterval(interval);
-                timerEl.textContent = '00:00';
-                timerEl.className = 'urgent';
+    // Load PDF as blob, then immediately revoke the URL so it can't be re-fetched
+    fetch("{{ route('digital.stream', $activeSession) }}", {
+        credentials: 'same-origin'
+    })
+    .then(res => res.blob())
+    .then(blob => {
+        const url = URL.createObjectURL(blob);
+        pdfFrame.src = url + '#toolbar=0&navpanes=0&scrollbar=0';
 
-                fetch(`/digital-sessions/${sessionId}/expire`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Content-Type': 'application/json'
-                    }
-                });
+        pdfFrame.addEventListener('load', () => {
+            // Revoke immediately after load — the iframe already has it, but the URL is now dead
+            URL.revokeObjectURL(url);
 
-                pdfFrame.style.pointerEvents = 'none';
-                pdfFrame.style.opacity = '0.2';
-                modal.classList.add('open');
-                return;
+            // Inject a transparent overlay into the PDF iframe to block right-click inside it
+            try {
+                const iframeDoc = pdfFrame.contentDocument || pdfFrame.contentWindow.document;
+                if (iframeDoc) {
+                    const overlay = iframeDoc.createElement('div');
+                    overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;';
+                    overlay.addEventListener('contextmenu', e => e.preventDefault());
+                    iframeDoc.body.appendChild(overlay);
+                }
+            } catch (e) {
+                // Cross-origin PDFs won't allow contentDocument access — that's fine,
+                // the blob URL approach already limits direct access
             }
+        });
+    })
+    .catch(() => {
+        pdfFrame.src = "{{ route('digital.stream', $activeSession) }}#toolbar=0&navpanes=0&scrollbar=0";
+    });
 
-            const minutes = Math.floor(remainingSeconds / 60);
-            const seconds = remainingSeconds % 60;
-            timerEl.textContent = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+    // Block right-click on the page itself
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('contextmenu', e => e.preventDefault(), true);
 
-            timerEl.className = remainingSeconds <= 60 ? 'urgent' : remainingSeconds <= 300 ? 'warn' : '';
+    // Block drag (prevents dragging PDF frame content out)
+    pdfFrame.addEventListener('dragstart', e => e.preventDefault());
 
-            remainingSeconds--;
+    // Block save/print/view-source keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        const key = e.key.toLowerCase();
+        const ctrl = e.ctrlKey || e.metaKey;
+
+        if (ctrl && ['s', 'p', 'u'].includes(key)) {
+            e.preventDefault();
+            return false;
+        }
+        // Block F12 (DevTools) and Ctrl+Shift+I / Ctrl+Shift+J
+        if (key === 'f12' || (ctrl && e.shiftKey && ['i', 'j', 'c'].includes(key))) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    function updateTimer() {
+        if (remainingSeconds <= 0) {
+            clearInterval(interval);
+            timerEl.textContent = '00:00';
+            timerEl.className = 'urgent';
+
+            fetch(`/digital-sessions/${sessionId}/expire`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            pdfFrame.style.pointerEvents = 'none';
+            pdfFrame.style.opacity = '0.2';
+            modal.classList.add('open');
+            return;
         }
 
-        updateTimer();
-        const interval = setInterval(updateTimer, 1000);
-    </script>
+        const minutes = Math.floor(remainingSeconds / 60);
+        const seconds = remainingSeconds % 60;
+        timerEl.textContent = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        timerEl.className = remainingSeconds <= 60 ? 'urgent' : remainingSeconds <= 300 ? 'warn' : '';
+        remainingSeconds--;
+    }
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+</script>
 
 </body>
 </html>
