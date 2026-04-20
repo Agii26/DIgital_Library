@@ -204,7 +204,7 @@
     {{-- ── PDF Viewer ── --}}
     <div class="reader-body">
         <iframe
-            src="{{ asset('storage/' . $book->digitalBook->file_path) }}#toolbar=0"
+            src="{{ route('digital.stream', $activeSession) }}#toolbar=0"
             id="pdf-frame"
             style="height:calc(100vh - 60px);"
         ></iframe>

@@ -78,4 +78,25 @@ class DigitalBookController extends Controller
 
         return response()->json(['success' => true]);
     }
+    public function stream(DigitalSession $session)
+{
+    // Ensure session belongs to the authenticated user
+    abort_if($session->user_id !== Auth::id(), 403);
+
+    // Ensure session is still active
+    abort_if(!$session->is_active || $session->expires_at <= now(), 403);
+
+    $book = $session->book;
+    abort_if(!$book || !$book->digitalBook, 404);
+
+    $path = storage_path('app/private/' . $book->digitalBook->file_path);
+    abort_if(!file_exists($path), 404);
+
+    return response()->file($path, [
+        'Content-Type'           => 'application/pdf',
+        'Content-Disposition'    => 'inline; filename="book.pdf"',
+        'Cache-Control'          => 'no-store, no-cache, must-revalidate',
+        'X-Content-Type-Options' => 'nosniff',
+    ]);
+}
 }

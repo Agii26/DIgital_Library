@@ -123,6 +123,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/digital-books', [App\Http\Controllers\DigitalBookController::class, 'index'])->name('digital.index');
     Route::get('/digital-books/{book}/read', [App\Http\Controllers\DigitalBookController::class, 'read'])->name('digital.read');
     Route::post('/digital-sessions/{session}/expire', [App\Http\Controllers\DigitalBookController::class, 'expire'])->name('digital.expire');
+    Route::get('/digital-sessions/{session}/stream', [App\Http\Controllers\DigitalBookController::class, 'stream'])->name('digital.stream');
 });
 
 
