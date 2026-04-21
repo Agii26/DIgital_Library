@@ -99,6 +99,13 @@ class AttendanceController extends Controller
     {
         $query = AttendanceLog::with('user');
 
+        if ($request->search) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                ->orWhere('student_id', 'like', '%' . $request->search . '%');
+            });
+        }
+
         if ($request->date) {
             $query->whereDate('scanned_at', $request->date);
         }
@@ -109,10 +116,11 @@ class AttendanceController extends Controller
             });
         }
 
-        $logs = $query->orderBy('scanned_at', 'desc')->get();
+        $logs = $query->orderBy('scanned_at', 'desc')->paginate(10)->withQueryString();
 
         $datePart = $request->date ?? now()->format('Y-m-d');
         $rolePart = $request->role ? '_' . $request->role : '';
+        $searchPart = $request->search ? '_' . str_replace(' ', '-', strtolower($request->search)) : '';
         $filename = 'attendance' . $rolePart . '_' . $datePart . '.csv';
 
         $headers = [
